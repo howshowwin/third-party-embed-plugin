@@ -1,0 +1,323 @@
+.msi-third-party-host {
+  min-width: 0;
+}
+
+.msi-third-party-embed {
+  overflow: hidden;
+  border: 1px solid #d9dde7;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 14px 42px rgb(23 32 56 / 0.08);
+}
+
+.msi-third-party-embed__content {
+  min-height: 320px;
+  background: #f2f4f8;
+}
+
+.msi-third-party-frame {
+  display: block;
+  width: 100%;
+  min-height: 360px;
+  border: 0;
+  background: #10131a;
+}
+
+.msi-third-party-placeholder,
+.msi-third-party-loading,
+.msi-third-party-error {
+  box-sizing: border-box;
+  min-height: 320px;
+}
+
+.msi-third-party-placeholder {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  padding: clamp(28px, 5vw, 56px);
+  background:
+    radial-gradient(circle at 90% 12%, rgb(230 0 18 / 0.08), transparent 34%),
+    linear-gradient(145deg, #fff 0%, #f5f6f9 100%);
+}
+
+.msi-third-party-placeholder__eyebrow,
+.msi-third-party-settings__eyebrow {
+  margin: 0 0 12px;
+  color: #d60012;
+  font: 700 11px/1.2 Arial, sans-serif;
+  letter-spacing: 0.14em;
+}
+
+.msi-third-party-placeholder__title {
+  margin: 0;
+  color: #161a24;
+  font: 700 clamp(24px, 3vw, 34px)/1.15 Arial, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.msi-third-party-placeholder__description {
+  max-width: 760px;
+  margin: 18px 0 0;
+  color: #4c5365;
+  font: 400 15px/1.75 Arial, sans-serif;
+}
+
+.msi-third-party-placeholder__scope {
+  max-width: 760px;
+  margin: 10px 0 0;
+  color: #697083;
+  font: 400 13px/1.6 Arial, sans-serif;
+}
+
+.msi-third-party-placeholder__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.msi-button,
+.msi-third-party-settings button,
+.msi-third-party-embed__privacy button {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: 700 13px/1 Arial, sans-serif;
+}
+
+.msi-button {
+  min-height: 42px;
+  padding: 0 18px;
+}
+
+.msi-button--primary {
+  color: #fff;
+  background: #d60012;
+  box-shadow: 0 8px 20px rgb(214 0 18 / 0.2);
+}
+
+.msi-button--primary:hover {
+  background: #b80010;
+}
+
+.msi-button--secondary {
+  border: 1px solid #cfd3dc;
+  color: #272d3b;
+  background: #fff;
+}
+
+.msi-button:focus-visible,
+.msi-third-party-placeholder__privacy-link:focus-visible,
+.msi-third-party-embed__privacy a:focus-visible,
+.msi-third-party-embed__privacy button:focus-visible,
+.msi-third-party-settings button:focus-visible,
+.msi-third-party-settings a:focus-visible {
+  outline: 3px solid rgb(0 103 184 / 0.32);
+  outline-offset: 3px;
+}
+
+.msi-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.msi-third-party-placeholder__privacy-link {
+  padding: 8px;
+  color: #4b5365;
+  font: 600 13px/1.4 Arial, sans-serif;
+  text-underline-offset: 3px;
+}
+
+.msi-third-party-embed__privacy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-height: 48px;
+  padding: 9px 16px;
+  border-top: 1px solid #e1e4eb;
+  color: #656c7d;
+  background: #fff;
+  font: 400 12px/1.5 Arial, sans-serif;
+}
+
+.msi-third-party-embed__privacy a,
+.msi-third-party-embed__privacy button {
+  color: #343b4d;
+}
+
+.msi-third-party-embed__privacy a {
+  text-underline-offset: 3px;
+}
+
+.msi-third-party-embed__privacy button {
+  margin-left: auto;
+  padding: 8px 12px;
+  background: #f1f2f5;
+}
+
+.msi-third-party-loading,
+.msi-third-party-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px;
+  color: #434a5b;
+  font: 600 14px/1.5 Arial, sans-serif;
+}
+
+.msi-third-party-loading__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d60012;
+  box-shadow: 0 0 0 0 rgb(214 0 18 / 0.4);
+  animation: msi-privacy-pulse 1.4s infinite;
+}
+
+.msi-third-party-error {
+  align-items: flex-start;
+  flex-direction: column;
+  color: #7f1d1d;
+  background: #fff2f2;
+}
+
+.msi-third-party-settings {
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(780px, calc(100vh - 32px));
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 24px;
+  color: #171b25;
+  background: #fff;
+  box-shadow: 0 28px 90px rgb(10 16 30 / 0.32);
+}
+
+.msi-third-party-settings::backdrop {
+  background: rgb(11 16 27 / 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.msi-third-party-settings__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 28px 18px;
+}
+
+.msi-third-party-settings__header h2 {
+  margin: 0;
+  font: 700 26px/1.15 Arial, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.msi-third-party-settings__close {
+  padding: 10px 14px;
+  color: #42495a;
+  background: #f0f2f5;
+}
+
+.msi-third-party-settings__intro {
+  margin: 0;
+  padding: 0 28px 24px;
+  color: #5a6273;
+  font: 400 14px/1.65 Arial, sans-serif;
+}
+
+.msi-third-party-settings__list {
+  border-top: 1px solid #e1e4ea;
+}
+
+.msi-third-party-settings__provider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 28px;
+  border-bottom: 1px solid #e8eaf0;
+}
+
+.msi-third-party-settings__provider h3,
+.msi-third-party-settings__provider p {
+  margin: 0;
+}
+
+.msi-third-party-settings__provider h3 {
+  font: 700 16px/1.3 Arial, sans-serif;
+}
+
+.msi-third-party-settings__provider p {
+  margin-top: 6px;
+  color: #666d7d;
+  font: 400 13px/1.5 Arial, sans-serif;
+}
+
+.msi-third-party-settings__provider a {
+  display: inline-block;
+  margin-top: 8px;
+  color: #3e4657;
+  font: 600 12px/1.4 Arial, sans-serif;
+}
+
+.msi-consent-toggle {
+  min-width: 142px;
+  padding: 12px 15px;
+  color: #414858;
+  background: #eceef2;
+}
+
+.msi-consent-toggle.is-allowed {
+  color: #0f5132;
+  background: #dff3e8;
+}
+
+@keyframes msi-privacy-pulse {
+  70% {
+    box-shadow: 0 0 0 10px rgb(214 0 18 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(214 0 18 / 0);
+  }
+}
+
+@media (max-width: 600px) {
+  .msi-third-party-placeholder {
+    padding: 28px 22px;
+  }
+
+  .msi-third-party-placeholder__actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .msi-button {
+    width: 100%;
+  }
+
+  .msi-third-party-embed__privacy button {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .msi-third-party-settings__provider {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .msi-consent-toggle {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msi-third-party-loading__dot {
+    animation: none;
+  }
+}

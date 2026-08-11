@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "consentVersion": "2026-08-v1",
+  "manifestVersion": "2026-08-11.1",
+  "providers": [
+    {
+      "id": "youtube",
+      "serviceName": "YouTube",
+      "companyName": "Google Ireland Limited",
+      "allowedOrigins": [
+        "https://www.youtube-nocookie.com"
+      ],
+      "allowedFrameOrigins": [
+        "https://www.youtube-nocookie.com"
+      ],
+      "purpose": {
+        "id": "embedded-video",
+        "label": "播放由 YouTube 提供的外部影音內容"
+      },
+      "privacyPolicyUrl": "https://policies.google.com/privacy",
+      "consentRequired": true
+    },
+    {
+      "id": "atlas-metrics-demo",
+      "serviceName": "Atlas Metrics Demo",
+      "companyName": "Example Provider（示範服務）",
+      "allowedOrigins": [
+        "$self"
+      ],
+      "allowedScriptOrigins": [
+        "$self"
+      ],
+      "purpose": {
+        "id": "interactive-widget",
+        "label": "示範需載入 JavaScript SDK 並呼叫 API 的互動式元件"
+      },
+      "privacyPolicyUrl": "/#demo-privacy",
+      "consentRequired": true
+    }
+  ]
+}
