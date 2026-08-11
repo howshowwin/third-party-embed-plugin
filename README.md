@@ -130,6 +130,8 @@ await control.create({
 
 ```js
 control.registerAdapter("metrics-widget", {
+  providerIds: ["metrics-provider"],
+
   async load({ loadScript }) {
     await loadScript("https://widgets.example.com/sdk.js", {
       integrity: "sha384-...",
@@ -175,6 +177,8 @@ Adapter 生命週期：
 3. SDK 完成：呼叫每個實例的 `mount()`。
 4. `mount()` 可回傳 cleanup function、含 `unmount()` 的物件，或由 adapter 提供 `unmount()`。
 5. 撤回：abort `signal`、呼叫 cleanup、移除容器並還原 placeholder。
+
+`providerIds` 將 adapter 限制在指定的核准服務，避免內容設定把某個 SDK adapter 與錯誤的 provider 組合。
 
 第三方 script 一旦執行，瀏覽器無法真正「反執行」程式碼。因此 adapter 必須使用供應商提供的 destroy/unmount API，停止計時器、事件監聽與 API 工作。對於沒有清理能力的 SDK，正式環境應考慮撤回後重新整理頁面。
 

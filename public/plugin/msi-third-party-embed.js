@@ -419,7 +419,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
         generation !== instance.generation ||
         !this.hasConsent(instance.provider.id)
       ) {
-        await this._cleanupMountResult(instance);
+        await this._cleanupMountResult(instance, false);
         return;
       }
 
@@ -466,6 +466,14 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     if (!adapter) {
       throw new Error(`Custom adapter is not registered: ${configuration.adapter}`);
     }
+    if (
+      Array.isArray(adapter.providerIds) &&
+      !adapter.providerIds.includes(provider.id)
+    ) {
+      throw new Error(
+        `Adapter ${configuration.adapter} is not approved for ${provider.serviceName}.`,
+      );
+    }
 
     const signal = instance.abortController.signal;
     const context = {
@@ -508,7 +516,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     instance.status = "blocked";
   }
 
-  async _cleanupMountResult(instance) {
+  async _cleanupMountResult(instance, clearTarget = true) {
     const mountResult = instance.mountResult;
     instance.mountResult = null;
 
@@ -531,7 +539,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       }
     }
 
-    instance.target.replaceChildren();
+    if (clearTarget) instance.target.replaceChildren();
   }
 
   _createShell(instance) {
@@ -578,7 +586,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     const scope = makeElement(
       "p",
       "msi-third-party-placeholder__scope",
-      `此選擇將套用於本頁所有由 ${provider.serviceName} 提供的嵌入內容，您可以隨時撤回。`,
+      `此選擇將套用於本網站所有由 ${provider.serviceName} 提供的嵌入內容，您可以隨時撤回。`,
     );
 
     const actions = makeElement("div", "msi-third-party-placeholder__actions");

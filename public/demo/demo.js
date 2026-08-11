@@ -37,6 +37,8 @@ const control = new MSIThirdPartyEmbedControl({
 });
 
 control.registerAdapter("atlas-metrics", {
+  providerIds: ["atlas-metrics-demo"],
+
   async load({ loadScript }) {
     await loadScript("/demo/mock-atlas-sdk.js");
     return window.AtlasMetricsDemo;
