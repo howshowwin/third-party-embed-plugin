@@ -135,6 +135,22 @@ export default function Home() {
             非同步載入、API 呼叫、取消與清理流程。
           </p>
         </article>
+
+        <article className="demo-block">
+          <div className="demo-label">
+            <span>MODE 03</span>
+            <div>
+              <h3>真實 Sideqik DIV＋inline bootstrap</h3>
+              <p>html → beforeLoad queue → CloudFront SDK → auto scan</p>
+            </div>
+          </div>
+          <div id="sideqik-promotion" className="embed-target" />
+          <p className="demo-disclaimer">
+            這是你提供的真實 Sideqik promotion。只有同意 Sideqik Promotions
+            後才會建立 promotion DIV 並向 CloudFront 載入 SDK。Sideqik
+            公開文件目前未提供明確的 destroy API；正式上線前應向供應商確認撤回後的完整停止方式，否則建議撤回時重新整理頁面。
+          </p>
+        </article>
       </section>
 
       <section className="integration" id="integration">

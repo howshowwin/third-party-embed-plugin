@@ -168,9 +168,36 @@ await control.create({
 
 1. 未同意時不插入 `html`，也不載入 `scripts`。
 2. 同意後插入 HTML，`{{metricId}}` 會以跳脫後的 `options.metricId` 代入。
-3. 載入 manifest 核准 origin 下的 scripts。
-4. 執行 `mount()`。
-5. 撤回時 abort `signal` 並執行 `unmount()`。
+3. 如果有 `beforeLoad()`，先執行供應商要求的 global queue 或前置設定。
+4. 載入 manifest 核准 origin 下的 scripts。
+5. 執行 `mount()`。
+6. 撤回時 abort `signal` 並執行 `unmount()`。
+
+像 Sideqik 這類 inline bootstrap 會先建立 global queue，再插入外部 script，可使用：
+
+```js
+await control.create({
+  type: "snippet",
+  providerId: "sideqik-promotions",
+  target: "#sideqik-slot",
+  html: `
+    <div
+      class="sideqik-promotion"
+      data-token="de9Cjo6b"
+      data-promotion-url="https://sdqk.me/p/…">
+    </div>
+  `,
+  beforeLoad() {
+    window.sideqik = window.sideqik || function () {
+      (window.sideqik.q = window.sideqik.q || []).push(arguments);
+    };
+  },
+  scripts: [{
+    src: "https://d1hrk5gt3yn7pi.cloudfront.net/api/sideqik-api-1.4.js#ACCOUNT_ID",
+    attributes: { id: "sideqik-sdk" }
+  }]
+});
+```
 
 `html` 不能包含 `<script>`、`iframe`、`object`、`embed`、inline `onclick` 或 CSS `url()`；這些內容可能自行發出請求或執行程式。iframe 應使用 `type: "iframe"`，外部 JS 應使用 `scripts`。
 

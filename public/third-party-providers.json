@@ -36,6 +36,24 @@
       },
       "privacyPolicyUrl": "/#demo-privacy",
       "consentRequired": true
+    },
+    {
+      "id": "sideqik-promotions",
+      "serviceName": "Sideqik Promotions",
+      "companyName": "Sideqik, Inc.",
+      "allowedOrigins": [
+        "https://sdqk.me",
+        "https://d1hrk5gt3yn7pi.cloudfront.net"
+      ],
+      "allowedScriptOrigins": [
+        "https://d1hrk5gt3yn7pi.cloudfront.net"
+      ],
+      "purpose": {
+        "id": "interactive-promotion",
+        "label": "顯示由 Sideqik 提供的互動式活動與促銷內容"
+      },
+      "privacyPolicyUrl": "https://www.sideqik.com/privacy",
+      "consentRequired": true
     }
   ]
 }

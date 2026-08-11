@@ -542,6 +542,13 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       throw new Error("Snippet unmount must be a function.");
     }
 
+    if (
+      configuration.beforeLoad !== undefined &&
+      typeof configuration.beforeLoad !== "function"
+    ) {
+      throw new Error("Snippet beforeLoad must be a function.");
+    }
+
     const scripts = configuration.scripts ?? [];
     if (!Array.isArray(scripts)) {
       throw new Error("Snippet scripts must be an array.");
@@ -614,6 +621,14 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       },
 
       load: async (context) => {
+        if (typeof configuration.beforeLoad === "function") {
+          await configuration.beforeLoad(context);
+        }
+
+        if (context.signal.aborted || !context.isAllowed()) {
+          throw new DOMException("Consent was withdrawn.", "AbortError");
+        }
+
         const loadedScripts = [];
         for (const entry of scripts) {
           const descriptor = typeof entry === "string" ? { src: entry } : entry;

@@ -105,6 +105,40 @@ async function boot() {
           window.AtlasMetricsDemo?.unmount(mountResult);
         },
       }),
+      control.create({
+        id: "sideqik-promotion",
+        type: "snippet",
+        providerId: "sideqik-promotions",
+        target: "#sideqik-promotion",
+        html: `
+          <div
+            class="sideqik-promotion"
+            data-token="de9Cjo6b"
+            data-promotion-url="https://sdqk.me/p/the-desk-my-stage-aug-2026_hq-de9Cjo6b">
+          </div>
+        `,
+        beforeLoad() {
+          window.sideqik =
+            window.sideqik ||
+            function sideqikQueue() {
+              window.sideqik.q = window.sideqik.q || [];
+              window.sideqik.q.push(arguments);
+            };
+        },
+        scripts: [
+          {
+            src: "https://d1hrk5gt3yn7pi.cloudfront.net/api/sideqik-api-1.4.js#62178a3cc9c3400046f5ca24",
+            attributes: {
+              id: "sideqik-sdk",
+            },
+          },
+        ],
+        unmount({ prepared }) {
+          prepared
+            ?.querySelectorAll("iframe, .sideqik-promotion")
+            .forEach((element) => element.remove());
+        },
+      }),
     ]);
 
     settingsButtons.forEach((button) => {
