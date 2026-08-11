@@ -39,13 +39,20 @@ const control = new MSIThirdPartyEmbedControl({
 control.registerAdapter("atlas-metrics", {
   providerIds: ["atlas-metrics-demo"],
 
+  prepare({ container }) {
+    const sdkRoot = document.createElement("div");
+    sdkRoot.dataset.atlasSdkRoot = "";
+    container.append(sdkRoot);
+    return sdkRoot;
+  },
+
   async load({ loadScript }) {
     await loadScript("/demo/mock-atlas-sdk.js");
     return window.AtlasMetricsDemo;
   },
 
-  async mount({ container, options, loaded, signal }) {
-    return loaded.mount(container, options, signal);
+  async mount({ prepared, options, loaded, signal }) {
+    return loaded.mount(prepared, options, signal);
   },
 
   unmount({ mountResult }) {

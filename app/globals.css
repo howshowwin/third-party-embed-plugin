@@ -503,6 +503,10 @@ button {
   background: #191e29;
 }
 
+.code-grid .code-wide {
+  grid-column: 1 / -1;
+}
+
 .code-title {
   display: flex;
   align-items: center;

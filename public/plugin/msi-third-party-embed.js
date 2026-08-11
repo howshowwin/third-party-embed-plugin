@@ -277,6 +277,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       status: "registered",
       generation: 0,
       abortController: null,
+      prepared: null,
       mountResult: null,
     };
 
@@ -494,14 +495,29 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       },
     };
 
-    const loaded =
-      typeof adapter.load === "function" ? await adapter.load(context) : undefined;
+    instance.prepared =
+      typeof adapter.prepare === "function"
+        ? await adapter.prepare(context)
+        : undefined;
 
     if (signal.aborted || !this.hasConsent(provider.id)) {
       throw new DOMException("Consent was withdrawn.", "AbortError");
     }
 
-    instance.mountResult = await adapter.mount({ ...context, loaded });
+    const loaded =
+      typeof adapter.load === "function"
+        ? await adapter.load({ ...context, prepared: instance.prepared })
+        : undefined;
+
+    if (signal.aborted || !this.hasConsent(provider.id)) {
+      throw new DOMException("Consent was withdrawn.", "AbortError");
+    }
+
+    instance.mountResult = await adapter.mount({
+      ...context,
+      prepared: instance.prepared,
+      loaded,
+    });
   }
 
   _getContentContainer(instance) {
@@ -518,7 +534,9 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
 
   async _cleanupMountResult(instance, clearTarget = true) {
     const mountResult = instance.mountResult;
+    const prepared = instance.prepared;
     instance.mountResult = null;
+    instance.prepared = null;
 
     if (instance.type === "custom") {
       const adapter = this.adapters.get(instance.configuration.adapter);
@@ -527,9 +545,13 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
           await mountResult();
         } else if (typeof mountResult?.unmount === "function") {
           await mountResult.unmount();
-        } else if (typeof adapter?.unmount === "function" && mountResult) {
+        } else if (
+          typeof adapter?.unmount === "function" &&
+          (mountResult || prepared)
+        ) {
           await adapter.unmount({
             mountResult,
+            prepared,
             provider: instance.provider,
             options: instance.configuration.options ?? {},
           });

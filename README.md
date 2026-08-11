@@ -128,11 +128,37 @@ await control.create({
 
 特殊嵌入必須由開發者註冊 adapter。一般內容編輯者不能直接傳入任意 script 或 HTML。
 
+假設供應商原本提供：
+
+```html
+<div class="metrics-widget" data-metric-id="health"></div>
+<script src="https://widgets.example.com/sdk.js"></script>
+<script>
+  MetricsSDK.mount(document.querySelector(".metrics-widget"));
+</script>
+```
+
+不要把整串直接交給 `innerHTML`。應依序拆成：
+
+- 原始 DIV → `prepare()`
+- 外部 `<script src>` → `load()`
+- inline 初始化程式 → `mount()`
+- 供應商 destroy API → `unmount()`
+
 ```js
 control.registerAdapter("metrics-widget", {
   providerIds: ["metrics-provider"],
 
-  async load({ loadScript }) {
+  prepare({ container, options }) {
+    const widget = document.createElement("div");
+    widget.className = "metrics-widget";
+    widget.dataset.metricId = options.metricId;
+    container.append(widget);
+    return widget;
+  },
+
+  async load({ loadScript, prepared }) {
+    // 此時供應商要求的 DIV 已經存在，才載入 SDK。
     await loadScript("https://widgets.example.com/sdk.js", {
       integrity: "sha384-...",
       crossorigin: "anonymous"
@@ -141,9 +167,9 @@ control.registerAdapter("metrics-widget", {
     return window.MetricsSDK;
   },
 
-  async mount({ container, options, loaded, signal }) {
+  async mount({ prepared, options, loaded, signal }) {
     // signal 會在撤回同意時 abort，可傳給後續 fetch/API。
-    return loaded.mount(container, {
+    return loaded.mount(prepared, {
       ...options,
       signal
     });
@@ -173,14 +199,17 @@ await control.create({
 Adapter 生命週期：
 
 1. 未同意：只顯示第一方 placeholder。
-2. 同意：呼叫一次 `load()` 載入核准 origin 的 SDK。
-3. SDK 完成：呼叫每個實例的 `mount()`。
-4. `mount()` 可回傳 cleanup function、含 `unmount()` 的物件，或由 adapter 提供 `unmount()`。
-5. 撤回：abort `signal`、呼叫 cleanup、移除容器並還原 placeholder。
+2. 同意：呼叫 `prepare()` 建立供應商要求的 inert DIV。
+3. 呼叫 `load()` 載入核准 origin 的 SDK。
+4. SDK 完成：呼叫每個實例的 `mount()` 與後續 API。
+5. `mount()` 可回傳 cleanup function、含 `unmount()` 的物件，或由 adapter 提供 `unmount()`。
+6. 撤回：abort `signal`、呼叫 cleanup、移除容器並還原 placeholder。
 
 `providerIds` 將 adapter 限制在指定的核准服務，避免內容設定把某個 SDK adapter 與錯誤的 provider 組合。
 
 第三方 script 一旦執行，瀏覽器無法真正「反執行」程式碼。因此 adapter 必須使用供應商提供的 destroy/unmount API，停止計時器、事件監聽與 API 工作。對於沒有清理能力的 SDK，正式環境應考慮撤回後重新整理頁面。
+
+如果供應商 SDK 只會在 `<script>` 第一次執行時自動掃描 DIV，卻沒有 `mount()`、`scan()` 或 `refresh()` API，就無法可靠建立第二個動態實例。這種 SDK 必須由該 provider 的專用 adapter 特別處理，必要時限制每頁只能一個實例。
 
 ## 同意與撤回 API
 

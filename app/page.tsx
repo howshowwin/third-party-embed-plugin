@@ -175,6 +175,37 @@ export default function Home() {
   options: { metricId: "health" }
 });`}</code></pre>
           </article>
+
+          <article className="code-wide">
+            <div className="code-title">
+              <span>供應商提供 DIV＋script 時</span>
+              <code>prepare → load → mount → unmount</code>
+            </div>
+            <pre><code>{`control.registerAdapter("vendor-widget", {
+  providerIds: ["vendor-provider"],
+
+  prepare({ container, options }) {
+    const div = document.createElement("div");
+    div.className = "vendor-widget";
+    div.dataset.contentId = options.contentId;
+    container.append(div);
+    return div;
+  },
+
+  async load({ loadScript }) {
+    await loadScript("https://vendor.example/sdk.js");
+    return window.VendorSDK;
+  },
+
+  mount({ prepared, loaded, options, signal }) {
+    return loaded.mount(prepared, { ...options, signal });
+  },
+
+  unmount({ mountResult }) {
+    return mountResult?.destroy?.();
+  }
+});`}</code></pre>
+          </article>
         </div>
       </section>
 
