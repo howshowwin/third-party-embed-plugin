@@ -36,30 +36,6 @@ const control = new MSIThirdPartyEmbedControl({
   },
 });
 
-control.registerAdapter("atlas-metrics", {
-  providerIds: ["atlas-metrics-demo"],
-
-  prepare({ container }) {
-    const sdkRoot = document.createElement("div");
-    sdkRoot.dataset.atlasSdkRoot = "";
-    container.append(sdkRoot);
-    return sdkRoot;
-  },
-
-  async load({ loadScript }) {
-    await loadScript("/demo/mock-atlas-sdk.js");
-    return window.AtlasMetricsDemo;
-  },
-
-  async mount({ prepared, options, loaded, signal }) {
-    return loaded.mount(prepared, options, signal);
-  },
-
-  unmount({ mountResult }) {
-    window.AtlasMetricsDemo?.unmount(mountResult);
-  },
-});
-
 function renderConsentSummary() {
   const allowed = control.getAllowedProviderIds();
   consentList.replaceChildren();
@@ -111,13 +87,22 @@ async function boot() {
       }),
       control.create({
         id: "atlas-widget",
-        type: "custom",
+        type: "snippet",
         providerId: "atlas-metrics-demo",
-        adapter: "atlas-metrics",
         target: "#atlas-widget",
+        html: `<div class="atlas-sdk-slot" data-metric-id="{{metricId}}"></div>`,
+        scripts: ["/demo/mock-atlas-sdk.js"],
         options: {
+          metricId: "privacy-lifecycle",
           metricLabel: "第三方 SDK 生命週期健康指數",
           values: [58, 64, 61, 75, 73, 84, 92],
+        },
+        mount({ prepared, options, signal }) {
+          const sdkSlot = prepared.querySelector(".atlas-sdk-slot");
+          return window.AtlasMetricsDemo.mount(sdkSlot, options, signal);
+        },
+        unmount({ mountResult }) {
+          window.AtlasMetricsDemo?.unmount(mountResult);
         },
       }),
     ]);

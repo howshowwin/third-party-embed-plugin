@@ -126,7 +126,57 @@ await control.create({
 
 ## 特殊 DIV＋JavaScript SDK
 
-特殊嵌入必須由開發者註冊 adapter。一般內容編輯者不能直接傳入任意 script 或 HTML。
+供應商提供的純 DIV 可以直接放入 `html`。把 `<script src>` 移到 `scripts`，原本的 inline 初始化程式移到 `mount()`：
+
+```js
+await control.create({
+  type: "snippet",
+  providerId: "metrics-provider",
+  target: "#metric-slot",
+
+  html: `
+    <div
+      class="metrics-widget"
+      data-metric-id="{{metricId}}">
+    </div>
+  `,
+
+  scripts: [
+    "https://widgets.example.com/sdk.js"
+  ],
+
+  mount({ prepared, options, signal }) {
+    const widget = prepared.querySelector(".metrics-widget");
+
+    return window.MetricsSDK.mount(widget, {
+      ...options,
+      signal
+    });
+  },
+
+  unmount({ mountResult }) {
+    return mountResult?.destroy?.();
+  },
+
+  options: {
+    metricId: "health"
+  }
+});
+```
+
+插件執行順序如下：
+
+1. 未同意時不插入 `html`，也不載入 `scripts`。
+2. 同意後插入 HTML，`{{metricId}}` 會以跳脫後的 `options.metricId` 代入。
+3. 載入 manifest 核准 origin 下的 scripts。
+4. 執行 `mount()`。
+5. 撤回時 abort `signal` 並執行 `unmount()`。
+
+`html` 不能包含 `<script>`、`iframe`、`object`、`embed`、inline `onclick` 或 CSS `url()`；這些內容可能自行發出請求或執行程式。iframe 應使用 `type: "iframe"`，外部 JS 應使用 `scripts`。
+
+### 可重複使用的中央 Adapter
+
+如果同一套供應商 snippet 會在很多頁面重複使用，可以由開發者先註冊 adapter，讓設計師只需要提供 `options`。一般內容編輯者不應直接註冊任意 adapter code。
 
 假設供應商原本提供：
 
@@ -138,7 +188,7 @@ await control.create({
 </script>
 ```
 
-不要把整串直接交給 `innerHTML`。應依序拆成：
+若要轉成中央 adapter，仍依序拆成：
 
 - 原始 DIV → `prepare()`
 - 外部 `<script src>` → `load()`

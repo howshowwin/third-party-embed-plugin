@@ -256,7 +256,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     }
 
     const type = configuration.type ?? "iframe";
-    if (type !== "iframe" && type !== "custom") {
+    if (type !== "iframe" && type !== "custom" && type !== "snippet") {
       throw new Error(`Unsupported embed type: ${type}`);
     }
 
@@ -304,7 +304,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     }
 
     if (type !== "iframe" || !configuration.url) {
-      throw new Error("Custom embeds require an approved providerId.");
+      throw new Error("Custom and snippet embeds require an approved providerId.");
     }
 
     const provider = resolveProviderByUrl(
@@ -463,7 +463,10 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
 
   async _mountCustom(instance) {
     const { configuration, provider } = instance;
-    const adapter = this.adapters.get(configuration.adapter);
+    const adapter =
+      instance.type === "snippet"
+        ? this._createSnippetAdapter(configuration)
+        : this.adapters.get(configuration.adapter);
     if (!adapter) {
       throw new Error(`Custom adapter is not registered: ${configuration.adapter}`);
     }
@@ -520,6 +523,119 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     });
   }
 
+  _createSnippetAdapter(configuration) {
+    if (typeof configuration.html !== "string" || !configuration.html.trim()) {
+      throw new Error("Snippet embeds require a non-empty html string.");
+    }
+
+    if (
+      configuration.mount !== undefined &&
+      typeof configuration.mount !== "function"
+    ) {
+      throw new Error("Snippet mount must be a function.");
+    }
+
+    if (
+      configuration.unmount !== undefined &&
+      typeof configuration.unmount !== "function"
+    ) {
+      throw new Error("Snippet unmount must be a function.");
+    }
+
+    const scripts = configuration.scripts ?? [];
+    if (!Array.isArray(scripts)) {
+      throw new Error("Snippet scripts must be an array.");
+    }
+
+    return {
+      providerIds: [configuration.providerId],
+
+      prepare: ({ container, provider, options }) => {
+        const html = configuration.html.replace(
+          /\{\{\s*([a-zA-Z0-9_-]+)\s*\}\}/g,
+          (_, key) => {
+            const value = options[key];
+            return value === undefined || value === null
+              ? ""
+              : String(value)
+                  .replaceAll("&", "&amp;")
+                  .replaceAll('"', "&quot;")
+                  .replaceAll("'", "&#39;")
+                  .replaceAll("<", "&lt;")
+                  .replaceAll(">", "&gt;");
+          },
+        );
+
+        const template = document.createElement("template");
+        template.innerHTML = html.trim();
+
+        const forbidden = template.content.querySelector(
+          "script, iframe, object, embed, link, base, meta",
+        );
+        if (forbidden) {
+          throw new Error(
+            `Snippet html cannot contain <${forbidden.localName}>. Use scripts[] or the iframe embed type instead.`,
+          );
+        }
+
+        const allowedResourceOrigins = new Set([
+          location.origin,
+          ...provider.allowedOrigins,
+        ]);
+
+        for (const element of template.content.querySelectorAll("*")) {
+          for (const attribute of [...element.attributes]) {
+            const name = attribute.name.toLowerCase();
+            if (name.startsWith("on")) {
+              throw new Error(`Inline event attribute is not allowed: ${name}`);
+            }
+            if (name === "style" && /url\s*\(/i.test(attribute.value)) {
+              throw new Error("CSS url() is not allowed in snippet html.");
+            }
+          }
+
+          for (const attributeName of ["src", "poster"]) {
+            const value = element.getAttribute(attributeName);
+            if (!value) continue;
+            const resource = new URL(value, location.href);
+            if (
+              !["data:", "blob:"].includes(resource.protocol) &&
+              !allowedResourceOrigins.has(resource.origin)
+            ) {
+              throw new Error(
+                `Snippet resource origin is not approved for ${provider.serviceName}: ${resource.origin}`,
+              );
+            }
+          }
+        }
+
+        container.append(template.content.cloneNode(true));
+        return container;
+      },
+
+      load: async (context) => {
+        const loadedScripts = [];
+        for (const entry of scripts) {
+          const descriptor = typeof entry === "string" ? { src: entry } : entry;
+          if (!descriptor?.src) {
+            throw new Error("Every snippet script requires a src.");
+          }
+          loadedScripts.push(
+            await context.loadScript(descriptor.src, descriptor.attributes),
+          );
+        }
+        return loadedScripts;
+      },
+
+      mount: (context) =>
+        typeof configuration.mount === "function"
+          ? configuration.mount(context)
+          : context.prepared,
+
+      unmount: configuration.unmount,
+    };
+  }
+
   _getContentContainer(instance) {
     return instance.target.querySelector("[data-msi-embed-content]");
   }
@@ -538,8 +654,11 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     instance.mountResult = null;
     instance.prepared = null;
 
-    if (instance.type === "custom") {
-      const adapter = this.adapters.get(instance.configuration.adapter);
+    if (instance.type === "custom" || instance.type === "snippet") {
+      const adapter =
+        instance.type === "snippet"
+          ? this._createSnippetAdapter(instance.configuration)
+          : this.adapters.get(instance.configuration.adapter);
       try {
         if (typeof mountResult === "function") {
           await mountResult();

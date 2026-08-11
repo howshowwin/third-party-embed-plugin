@@ -165,13 +165,20 @@ export default function Home() {
           <article>
             <div className="code-title">
               <span>特殊 SDK 元件</span>
-              <code>type: custom</code>
+              <code>type: snippet</code>
             </div>
             <pre><code>{`await control.create({
-  type: "custom",
+  type: "snippet",
   providerId: "atlas-metrics-demo",
-  adapter: "atlas-metrics",
   target: "#metric-slot",
+  html: '<div class="metric"></div>',
+  scripts: ["https://vendor.example/sdk.js"],
+  mount({ prepared, options, signal }) {
+    return VendorSDK.mount(
+      prepared.querySelector(".metric"),
+      { ...options, signal }
+    );
+  },
   options: { metricId: "health" }
 });`}</code></pre>
           </article>
@@ -181,29 +188,30 @@ export default function Home() {
               <span>供應商提供 DIV＋script 時</span>
               <code>prepare → load → mount → unmount</code>
             </div>
-            <pre><code>{`control.registerAdapter("vendor-widget", {
-  providerIds: ["vendor-provider"],
+            <pre><code>{`await control.create({
+  type: "snippet",
+  providerId: "vendor-provider",
+  target: "#vendor-slot",
 
-  prepare({ container, options }) {
-    const div = document.createElement("div");
-    div.className = "vendor-widget";
-    div.dataset.contentId = options.contentId;
-    container.append(div);
-    return div;
-  },
+  // 供應商給的 DIV 可直接放這裡
+  html: \
+    '<div class="vendor-widget" ' +
+    'data-id="{{contentId}}"></div>',
 
-  async load({ loadScript }) {
-    await loadScript("https://vendor.example/sdk.js");
-    return window.VendorSDK;
-  },
+  // 把 <script src="..."> 改放到陣列
+  scripts: ["https://vendor.example/sdk.js"],
 
-  mount({ prepared, loaded, options, signal }) {
-    return loaded.mount(prepared, { ...options, signal });
+  // 把原本 inline script 放進 mount
+  mount({ prepared, options, signal }) {
+    const div = prepared.querySelector(".vendor-widget");
+    return window.VendorSDK.mount(div, { ...options, signal });
   },
 
   unmount({ mountResult }) {
     return mountResult?.destroy?.();
-  }
+  },
+
+  options: { contentId: "product-123" }
 });`}</code></pre>
           </article>
         </div>
