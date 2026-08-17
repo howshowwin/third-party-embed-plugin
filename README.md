@@ -34,10 +34,25 @@ Demo 網站只有以下兩個正式插件檔案從 MSI Storage 載入：
 
 ```bash
 npm install
+copy .env.example .env.local
 npm run dev
 ```
 
-瀏覽 `http://localhost:3000`。
+在 `.env.local` 將 `SITE_ACCESS_PASSWORD` 設為內部約定的密碼，再瀏覽 `http://localhost:3000`。
+
+## 手冊存取保護
+
+手冊使用伺服器端密碼閘門；未通過驗證時不會渲染正式頁面或提供 Demo JSON／JavaScript。驗證成功後只建立瀏覽器工作階段有效的 `HttpOnly` Cookie，關閉瀏覽器後需重新登入。
+
+請勿將正式密碼寫入原始碼或提交至 GitHub。在 Vercel 專案的 **Settings → Environment Variables** 新增：
+
+```text
+SITE_ACCESS_PASSWORD=你的內部存取密碼
+```
+
+Production、Preview、Development 環境可依需要分別設定。變更環境變數後必須重新部署才會生效。
+
+這是用於內部手冊的輕量防護，可以阻擋一般爬蟲與未授權瀏覽，但不取代公司 SSO、Vercel Deployment Protection、WAF 或完整帳號權限系統。
 
 ## 部署到 Vercel
 
@@ -46,7 +61,8 @@ npm run dev
 1. 將專案資料夾推送到 Git repository。
 2. 在 Vercel 選擇 **Add New → Project** 並匯入 repository。
 3. Framework Preset 選擇 **Next.js**；Build Command 與 Output Directory 使用 Vercel 預設值。
-4. 部署後，Vercel 會自動執行 `npm run build`。
+4. 在 Environment Variables 設定 `SITE_ACCESS_PASSWORD`。
+5. 部署後，Vercel 會自動執行 `npm run build`。
 
 如需讓 Open Graph 網址固定使用正式網域，可在 Vercel Environment Variables 設定：
 

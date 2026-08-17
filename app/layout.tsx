@@ -35,6 +35,16 @@ export const metadata: Metadata = {
     description,
     images: ["/og-guide.png"],
   },
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
 };
 
 export default function RootLayout({
