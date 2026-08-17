@@ -18,41 +18,31 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <main className="access-page">
-      <section className="access-card" aria-labelledby="access-title">
-        <div className="access-mark" aria-hidden="true">MSI</div>
-        <p className="access-eyebrow">INTERNAL DOCUMENTATION</p>
-        <h1 id="access-title">第三方嵌入工具手冊</h1>
-        <p className="access-description">
-          此頁面僅供授權人員使用。請輸入存取密碼後繼續。
-        </p>
+      <form className="access-form" action="/api/site-access" method="post">
+        <input type="hidden" name="next" value={params.next ?? "/"} />
+        <input
+          name="password"
+          type="password"
+          aria-label="存取密碼"
+          placeholder="請輸入密碼"
+          autoComplete="current-password"
+          required
+          aria-describedby={invalidPassword || configurationError ? "access-error" : undefined}
+        />
+        <button type="submit" disabled={configurationError}>確定</button>
 
-        <form className="access-form" action="/api/site-access" method="post">
-          <input type="hidden" name="next" value={params.next ?? "/"} />
-          <label htmlFor="site-password">存取密碼</label>
-          <input
-            id="site-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            aria-describedby={invalidPassword || configurationError ? "access-error" : undefined}
-          />
+        {invalidPassword ? (
+          <p className="access-error" id="access-error" role="alert">
+            密碼不正確
+          </p>
+        ) : null}
 
-          {invalidPassword ? (
-            <p className="access-error" id="access-error" role="alert">
-              密碼不正確，請重新輸入。
-            </p>
-          ) : null}
-
-          {configurationError ? (
-            <p className="access-error" id="access-error" role="alert">
-              網站尚未設定 SITE_ACCESS_PASSWORD，請聯絡管理者。
-            </p>
-          ) : null}
-
-          <button type="submit" disabled={configurationError}>進入手冊</button>
-        </form>
-      </section>
+        {configurationError ? (
+          <p className="access-error" id="access-error" role="alert">
+            網站尚未設定存取密碼
+          </p>
+        ) : null}
+      </form>
     </main>
   );
 }
