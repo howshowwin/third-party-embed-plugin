@@ -78,6 +78,28 @@ test("provides a localized purpose for every provider in every locale", () => {
   }
 });
 
+test("translates the purpose label directly in every locale", () => {
+  for (const [locale, messages] of Object.entries(translations.locales)) {
+    assert.equal(
+      typeof messages["placeholder.purpose"],
+      "string",
+      `Missing direct purpose label translation: ${locale}`,
+    );
+    assert.match(
+      messages["placeholder.purpose"],
+      /\{purpose\}/,
+      `Purpose label must preserve its placeholder: ${locale}`,
+    );
+    if (locale !== "en") {
+      assert.notEqual(
+        messages["placeholder.purpose"],
+        translations.locales.en["placeholder.purpose"],
+        `Purpose label still uses English: ${locale}`,
+      );
+    }
+  }
+});
+
 test("maps every supported MSI market to an available locale", () => {
   const markets = [
     "Global", "Brazil", "Bulgaria", "Canada", "China", "Czech Republic",
