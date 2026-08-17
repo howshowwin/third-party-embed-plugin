@@ -1,15 +1,169 @@
 const DEFAULTS = Object.freeze({
-  manifestUrl: "/third-party-providers.json",
+  manifestUrl:
+    "https://storage-asset.msi.com/event/msi-third-party-embed/third-party-providers.json",
   cookieName: "msi_thirdPartyCookieControl",
   cookieMaxAgeDays: 180,
   cookieSecure: "auto",
-  locale: "zh-TW",
+  reloadOnCustomRevoke: true,
+  locale: "auto",
+  translationsUrl:
+    "https://storage-asset.msi.com/event/msi-third-party-embed/plugin/translations.json",
 });
 
 const scriptLoads = new Map();
+const COOKIE_NAME_PATTERN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+const ALLOWED_SCRIPT_ATTRIBUTES = new Set([
+  "crossorigin",
+  "fetchpriority",
+  "id",
+  "integrity",
+  "nomodule",
+  "referrerpolicy",
+  "type",
+]);
+const META_GRAPH_API_VERSION = "v25.0";
+const META_SDK_LOCALES = Object.freeze({
+  ar: "ar_AR",
+  "bg-BG": "bg_BG",
+  "cs-CZ": "cs_CZ",
+  "de-DE": "de_DE",
+  "el-GR": "el_GR",
+  en: "en_US",
+  es: "es_ES",
+  "fr-FR": "fr_FR",
+  "hu-HU": "hu_HU",
+  "id-ID": "id_ID",
+  "it-IT": "it_IT",
+  "ja-JP": "ja_JP",
+  "ko-KR": "ko_KR",
+  "nl-NL": "nl_NL",
+  "pl-PL": "pl_PL",
+  "pt-BR": "pt_BR",
+  "ro-RO": "ro_RO",
+  "ru-RU": "ru_RU",
+  "sv-SE": "sv_SE",
+  "th-TH": "th_TH",
+  "tr-TR": "tr_TR",
+  "uk-UA": "uk_UA",
+  "vi-VN": "vi_VN",
+  "zh-CN": "zh_CN",
+  "zh-TW": "zh_TW",
+});
 
 function utf8Size(value) {
   return new TextEncoder().encode(value).length;
+}
+
+export function normalizeTranslations(rawTranslations) {
+  if (!rawTranslations || typeof rawTranslations !== "object") {
+    throw new Error("The translations file must be an object.");
+  }
+
+  const defaultLocale = String(rawTranslations.defaultLocale ?? "en");
+  const locales = rawTranslations.locales;
+  if (!locales || typeof locales !== "object" || Array.isArray(locales)) {
+    throw new Error("The translations file must include a locales object.");
+  }
+  if (!locales[defaultLocale] || typeof locales[defaultLocale] !== "object") {
+    throw new Error(`The default translation locale is missing: ${defaultLocale}`);
+  }
+
+  const markets =
+    rawTranslations.markets && typeof rawTranslations.markets === "object"
+      ? rawTranslations.markets
+      : {};
+  const aliases =
+    rawTranslations.aliases && typeof rawTranslations.aliases === "object"
+      ? rawTranslations.aliases
+      : {};
+  const domainCodes =
+    rawTranslations.domainCodes && typeof rawTranslations.domainCodes === "object"
+      ? rawTranslations.domainCodes
+      : {};
+
+  for (const [market, locale] of Object.entries(markets)) {
+    const resolvedLocale = aliases[locale] ?? locale;
+    if (!locales[resolvedLocale]) {
+      throw new Error(`Market ${market} references an unknown locale: ${locale}`);
+    }
+  }
+
+  for (const [code, locale] of Object.entries(domainCodes)) {
+    const resolvedLocale = aliases[locale] ?? locale;
+    if (!locales[resolvedLocale]) {
+      throw new Error(`Domain code ${code} references an unknown locale: ${locale}`);
+    }
+  }
+
+  for (const [locale, messages] of Object.entries(locales)) {
+    if (!messages || typeof messages !== "object" || Array.isArray(messages)) {
+      throw new Error(`Locale ${locale} must be an object.`);
+    }
+    if (messages.$extends && !locales[messages.$extends]) {
+      throw new Error(`Locale ${locale} extends an unknown locale: ${messages.$extends}`);
+    }
+    for (const [key, value] of Object.entries(messages)) {
+      if (key !== "$extends" && typeof value !== "string") {
+        throw new Error(`Translation ${locale}.${key} must be a string.`);
+      }
+    }
+  }
+
+  return Object.freeze({ defaultLocale, locales, markets, aliases, domainCodes });
+}
+
+export function detectLocaleFromHostname(hostname, translations) {
+  const defaultLocale = translations?.defaultLocale ?? "en";
+  const normalizedHostname = String(hostname ?? "").trim().toLowerCase();
+  if (
+    normalizedHostname !== "msi.com" &&
+    !normalizedHostname.endsWith(".msi.com")
+  ) {
+    return defaultLocale;
+  }
+  const firstLabel = normalizedHostname.split(".")[0];
+
+  if (!firstLabel || firstLabel === "www" || firstLabel === "mtc") {
+    return defaultLocale;
+  }
+
+  const exactLocale = translations?.domainCodes?.[firstLabel];
+  const twoCharacterLocale = translations?.domainCodes?.[firstLabel.slice(0, 2)];
+  const candidate = exactLocale ?? twoCharacterLocale ?? defaultLocale;
+  const resolved = translations?.aliases?.[candidate] ?? candidate;
+  return translations?.locales?.[resolved] ? resolved : defaultLocale;
+}
+
+function interpolateTranslation(template, values = {}) {
+  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, key) =>
+    values[key] === undefined || values[key] === null ? match : String(values[key]),
+  );
+}
+
+export function normalizeCookieMaxAgeDays(value) {
+  const days = Number(value);
+  if (!Number.isFinite(days) || days <= 0) {
+    throw new Error("cookieMaxAgeDays must be a positive number.");
+  }
+  return Math.min(days, 400);
+}
+
+export function normalizeScriptAttributes(attributes = {}) {
+  if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) {
+    throw new Error("Script attributes must be an object.");
+  }
+
+  return Object.entries(attributes).map(([key, value]) => {
+    const normalizedKey = key.toLowerCase();
+    if (!ALLOWED_SCRIPT_ATTRIBUTES.has(normalizedKey)) {
+      throw new Error(`Script attribute is not allowed: ${key}`);
+    }
+    return [normalizedKey, value];
+  });
+}
+
+function isRtlLocale(locale) {
+  return /^ar(?:-|$)/i.test(locale);
 }
 
 function normalizeOrigin(origin, baseOrigin) {
@@ -79,9 +233,18 @@ export function normalizeManifest(rawManifest, baseOrigin) {
       baseOrigin,
       "allowedScriptOrigins",
     );
+    let privacyPolicyUrl;
+    if (raw.privacyPolicyUrl) {
+      const privacyUrl = new URL(raw.privacyPolicyUrl, baseOrigin);
+      if (privacyUrl.protocol !== "https:") {
+        throw new Error(`Provider ${raw.id} privacyPolicyUrl must use HTTPS.`);
+      }
+      privacyPolicyUrl = privacyUrl.href;
+    }
 
     return Object.freeze({
       ...raw,
+      privacyPolicyUrl,
       allowedOrigins: Object.freeze(allowedOrigins),
       allowedFrameOrigins: Object.freeze(frameOrigins),
       allowedScriptOrigins: Object.freeze(scriptOrigins),
@@ -168,7 +331,7 @@ function loadExternalScript(src, attributes = {}) {
     script.async = true;
     script.dataset.msiThirdPartySdk = "";
 
-    for (const [key, value] of Object.entries(attributes)) {
+    for (const [key, value] of normalizeScriptAttributes(attributes)) {
       if (value !== undefined && value !== null) {
         script.setAttribute(key, String(value));
       }
@@ -188,18 +351,150 @@ function loadExternalScript(src, attributes = {}) {
   return promise;
 }
 
+function registerDefaultSnippetPresets(control) {
+  control.registerSnippetPreset("sideqik-promotions", {
+    css: `
+      .sideqik-promotion {
+        min-height: 420px;
+        background: #ffffff;
+      }
+    `,
+    js: [
+      ({ global }) => {
+        global.sideqik =
+          global.sideqik ||
+          function sideqikQueue() {
+            global.sideqik.q = global.sideqik.q || [];
+            global.sideqik.q.push(arguments);
+          };
+      },
+      {
+        src: "https://d1hrk5gt3yn7pi.cloudfront.net/api/sideqik-api-1.4.js#62178a3cc9c3400046f5ca24",
+        attributes: {
+          id: "sideqik-sdk",
+        },
+      },
+    ],
+  });
+
+  control.registerSnippetPreset("gleam-competitions", {
+    css: `
+      .giveaway__embed-placeholder {
+        min-height: 420px;
+        background: #ffffff;
+      }
+    `,
+    js: [
+      {
+        src: "https://widget.gleamjs.io/e.js",
+      },
+    ],
+  });
+
+  control.registerSnippetPreset("instagram-embeds", {
+    css: `
+      .instagram-media-frame {
+        display: block;
+        width: 100%;
+        max-width: 540px;
+        height: 1120px;
+        border: 0;
+        margin: 0 auto !important;
+      }
+    `,
+    mount({ prepared, provider }) {
+      const source = prepared.querySelector(".instagram-media");
+      if (!source) {
+        throw new Error("Instagram embed requires .instagram-media HTML.");
+      }
+
+      const permalink = new URL(source.dataset.instgrmPermalink);
+      const isInstagramPost =
+        permalink.origin === "https://www.instagram.com" &&
+        /^\/(p|reel)\/[^/]+\/?$/.test(permalink.pathname);
+      if (!isInstagramPost) {
+        throw new Error("Instagram permalink must be a public post or Reel URL.");
+      }
+
+      const iframe = document.createElement("iframe");
+      iframe.className = "instagram-media-frame";
+      iframe.src = `${permalink.origin}${permalink.pathname.replace(/\/$/, "")}/embed/captioned/`;
+      iframe.title = control.translate("iframe.defaultTitle", {
+        serviceName: provider.serviceName,
+      });
+      iframe.loading = "lazy";
+      iframe.allowFullscreen = true;
+      iframe.setAttribute("scrolling", "yes");
+      source.replaceWith(iframe);
+
+      const updateHeight = () => {
+        const width = iframe.getBoundingClientRect().width || 540;
+        const height = Math.round(Math.min(1200, Math.max(920, width + 660)));
+        iframe.style.height = `${height}px`;
+      };
+      const resizeObserver =
+        typeof ResizeObserver === "function"
+          ? new ResizeObserver(updateHeight)
+          : null;
+      resizeObserver?.observe(iframe);
+      window.addEventListener("resize", updateHeight);
+      updateHeight();
+
+      return {
+        unmount() {
+          resizeObserver?.disconnect();
+          window.removeEventListener("resize", updateHeight);
+        },
+      };
+    },
+  });
+
+  control.registerSnippetPreset("facebook-embeds", {
+    css: `
+      .fb-post {
+        min-height: 420px;
+        text-align: center;
+      }
+    `,
+    async beforeLoad({ loadScript }) {
+      const sdkLocale = META_SDK_LOCALES[control.locale] ?? "en_US";
+      await loadScript(
+        `https://connect.facebook.net/${sdkLocale}/sdk.js#xfbml=1&version=${META_GRAPH_API_VERSION}&autoLogAppEvents=0`,
+        {
+          id: "facebook-jssdk",
+          crossorigin: "anonymous",
+        },
+      );
+    },
+    mount({ prepared }) {
+      window.FB?.XFBML?.parse(prepared);
+      return prepared;
+    },
+  });
+}
+
 export class MSIThirdPartyEmbedControl extends EventTarget {
   constructor(options = {}) {
     super();
     this.options = { ...DEFAULTS, ...options };
+    if (!COOKIE_NAME_PATTERN.test(this.options.cookieName)) {
+      throw new Error("cookieName contains invalid characters.");
+    }
+    this.options.cookieMaxAgeDays = normalizeCookieMaxAgeDays(
+      this.options.cookieMaxAgeDays,
+    );
     this.manifest = null;
+    this.translations = null;
+    this.locale = this.options.locale;
     this.providers = new Map();
     this.adapters = new Map();
+    this.snippetPresets = new Map();
     this.instances = new Map();
     this.allowed = new Set();
     this.settingsDialog = null;
     this.instanceSequence = 0;
     this.initialization = null;
+    registerDefaultSnippetPresets(this);
   }
 
   registerAdapter(id, adapter) {
@@ -215,6 +510,19 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     return this;
   }
 
+  registerSnippetPreset(providerId, preset) {
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(providerId)) {
+      throw new Error(`Invalid provider id: ${providerId}`);
+    }
+
+    if (!preset || typeof preset !== "object" || Array.isArray(preset)) {
+      throw new Error(`Snippet preset for ${providerId} must be an object.`);
+    }
+
+    this.snippetPresets.set(providerId, { ...preset });
+    return this;
+  }
+
   async init() {
     if (this.initialization) return this.initialization;
 
@@ -223,17 +531,42 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
   }
 
   async _initialize() {
-    const response = await fetch(this.options.manifestUrl, {
+    const requestOptions = {
       cache: "no-cache",
       credentials: "same-origin",
       headers: { accept: "application/json" },
-    });
+    };
+    const [response, translationsResponse] = await Promise.all([
+      fetch(this.options.manifestUrl, requestOptions),
+      fetch(this.options.translationsUrl, requestOptions),
+    ]);
 
     if (!response.ok) {
       throw new Error(`Unable to load provider manifest (${response.status}).`);
     }
+    if (!translationsResponse.ok) {
+      throw new Error(`Unable to load translations (${translationsResponse.status}).`);
+    }
 
-    this.manifest = normalizeManifest(await response.json(), location.origin);
+    const [rawManifest, rawTranslations] = await Promise.all([
+      response.json(),
+      translationsResponse.json(),
+    ]);
+    this.manifest = normalizeManifest(rawManifest, location.origin);
+    this.translations = normalizeTranslations(rawTranslations);
+    const requestedLocale = String(this.options.locale || "auto");
+    if (requestedLocale.toLowerCase() === "auto") {
+      this.locale = detectLocaleFromHostname(location.hostname, this.translations);
+    } else {
+      const marketLocale = this.translations.markets[requestedLocale] ?? requestedLocale;
+      const aliasedLocale = this.translations.aliases[marketLocale] ?? marketLocale;
+      const baseLocale = aliasedLocale.split("-")[0];
+      this.locale = this.translations.locales[aliasedLocale]
+        ? aliasedLocale
+        : this.translations.locales[baseLocale]
+          ? baseLocale
+          : this.translations.defaultLocale;
+    }
     this.providers = new Map(
       this.manifest.providers.map((provider) => [provider.id, provider]),
     );
@@ -246,6 +579,29 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     );
 
     return this;
+  }
+
+  _t(key, values = {}, fallback = key) {
+    const selected = this.translations?.locales?.[this.locale] ?? {};
+    const parent = selected.$extends
+      ? this.translations?.locales?.[selected.$extends] ?? {}
+      : {};
+    const defaults =
+      this.translations?.locales?.[this.translations?.defaultLocale] ?? {};
+    const template = selected[key] ?? parent[key] ?? defaults[key] ?? fallback;
+    return interpolateTranslation(String(template), values);
+  }
+
+  translate(key, values = {}, fallback = key) {
+    return this._t(key, values, fallback);
+  }
+
+  _getProviderPurpose(provider) {
+    return this._t(
+      `providers.${provider.id}.purpose`,
+      { serviceName: provider.serviceName },
+      provider.purpose.label,
+    );
   }
 
   async create(configuration) {
@@ -266,6 +622,14 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
 
     if (this.instances.has(id)) {
       throw new Error(`Duplicate embed instance id: ${id}`);
+    }
+    const existingInstance = [...this.instances.values()].find(
+      (registered) => registered.target === target,
+    );
+    if (existingInstance) {
+      throw new Error(
+        `The target is already used by embed instance: ${existingInstance.id}`,
+      );
     }
 
     const instance = {
@@ -289,7 +653,12 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     return Object.freeze({
       id,
       providerId: provider.id,
-      refresh: () => this._syncInstance(instance),
+      refresh: () => {
+        if (this.instances.get(id) !== instance) {
+          throw new Error(`Embed instance has been destroyed: ${id}`);
+        }
+        return this._syncInstance(instance);
+      },
       destroy: () => this.remove(id),
     });
   }
@@ -342,8 +711,14 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     const provider = this._requireProvider(providerId);
 
     if (provider.consentRequired !== false) {
+      const wasAllowed = this.allowed.has(providerId);
       this.allowed.add(providerId);
-      this._writeAllowedProviders();
+      try {
+        this._writeAllowedProviders();
+      } catch (error) {
+        if (!wasAllowed) this.allowed.delete(providerId);
+        throw error;
+      }
     }
 
     await this._syncProvider(providerId);
@@ -353,34 +728,83 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
   async revoke(providerId) {
     await this.init();
     this._requireProvider(providerId);
-    this.allowed.delete(providerId);
-    this._writeAllowedProviders();
+    const wasAllowed = this.allowed.delete(providerId);
+    try {
+      this._writeAllowedProviders();
+    } catch (error) {
+      if (wasAllowed) this.allowed.add(providerId);
+      throw error;
+    }
 
     const providerInstances = [...this.instances.values()].filter(
       (instance) => instance.provider.id === providerId,
     );
+    const willReload = this._providerNeedsReload(providerId);
+
+    if (willReload) {
+      this._emitConsentChange(providerId, "revoked", true);
+      location.reload();
+      return;
+    }
+
     await Promise.all(providerInstances.map((instance) => this._deactivate(instance)));
     providerInstances.forEach((instance) => this._renderPlaceholder(instance));
 
-    this._emitConsentChange(providerId, "revoked");
+    this._emitConsentChange(providerId, "revoked", false);
   }
 
   async revokeAll() {
     await this.init();
     const ids = [...this.allowed];
-    for (const providerId of ids) {
-      await this.revoke(providerId);
+    if (!ids.length) return;
+
+    const willReload = ids.some((providerId) =>
+      this._providerNeedsReload(providerId),
+    );
+
+    this.allowed.clear();
+    try {
+      this._writeAllowedProviders();
+    } catch (error) {
+      ids.forEach((providerId) => this.allowed.add(providerId));
+      throw error;
     }
+    ids.forEach((providerId) =>
+      this._emitConsentChange(providerId, "revoked", willReload),
+    );
+
+    if (willReload) {
+      location.reload();
+      return;
+    }
+
+    const affected = [...this.instances.values()].filter((instance) =>
+      ids.includes(instance.provider.id),
+    );
+    await Promise.all(affected.map((instance) => this._deactivate(instance)));
+    affected.forEach((instance) => this._renderPlaceholder(instance));
+  }
+
+  _providerNeedsReload(providerId) {
+    if (!this.options.reloadOnCustomRevoke) return false;
+
+    return [...this.instances.values()].some(
+      (instance) =>
+        instance.provider.id === providerId &&
+        instance.type !== "iframe" &&
+        ["loading", "active", "error"].includes(instance.status),
+    );
   }
 
   async remove(instanceId) {
     const instance = this.instances.get(instanceId);
     if (!instance) return;
+    this.instances.delete(instanceId);
     await this._deactivate(instance);
     instance.target.replaceChildren();
     instance.target.classList.remove("msi-third-party-host");
     delete instance.target.dataset.providerId;
-    this.instances.delete(instanceId);
+    instance.status = "destroyed";
   }
 
   async _syncProvider(providerId) {
@@ -425,11 +849,12 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       }
 
       instance.status = "active";
+      instance.target.querySelector(".msi-third-party-loading")?.remove();
       this._appendPrivacyFooter(instance);
     } catch (error) {
       if (error?.name === "AbortError") return;
       instance.status = "error";
-      this._renderError(instance, error);
+      this._renderError(instance);
       this._emitError(error, instance);
     }
   }
@@ -449,7 +874,9 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
 
     const iframe = document.createElement("iframe");
     iframe.className = "msi-third-party-frame";
-    iframe.title = configuration.title ?? `${provider.serviceName} 外部內容`;
+    iframe.title =
+      configuration.title ??
+      this._t("iframe.defaultTitle", { serviceName: provider.serviceName });
     iframe.loading = configuration.loading ?? "lazy";
     iframe.referrerPolicy = configuration.referrerPolicy ?? "no-referrer";
     iframe.allow = configuration.allow ?? "";
@@ -524,6 +951,9 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
   }
 
   _createSnippetAdapter(configuration) {
+    const preset = this.snippetPresets.get(configuration.providerId) ?? {};
+    configuration = { ...preset, ...configuration };
+
     if (typeof configuration.html !== "string" || !configuration.html.trim()) {
       throw new Error("Snippet embeds require a non-empty html string.");
     }
@@ -554,6 +984,20 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       throw new Error("Snippet scripts must be an array.");
     }
 
+    if (
+      configuration.css !== undefined &&
+      typeof configuration.css !== "string"
+    ) {
+      throw new Error("Snippet css must be a string.");
+    }
+
+    const javascript =
+      configuration.js === undefined
+        ? []
+        : Array.isArray(configuration.js)
+          ? configuration.js
+          : [configuration.js];
+
     return {
       providerIds: [configuration.providerId],
 
@@ -581,7 +1025,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
         );
         if (forbidden) {
           throw new Error(
-            `Snippet html cannot contain <${forbidden.localName}>. Use scripts[] or the iframe embed type instead.`,
+            `Snippet html cannot contain <${forbidden.localName}>. Put external scripts in js, or use the iframe embed type instead.`,
           );
         }
 
@@ -590,19 +1034,16 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
           ...provider.allowedOrigins,
         ]);
 
-        for (const element of template.content.querySelectorAll("*")) {
-          for (const attribute of [...element.attributes]) {
-            const name = attribute.name.toLowerCase();
-            if (name.startsWith("on")) {
-              throw new Error(`Inline event attribute is not allowed: ${name}`);
-            }
-            if (name === "style" && /url\s*\(/i.test(attribute.value)) {
-              throw new Error("CSS url() is not allowed in snippet html.");
-            }
+        const css = configuration.css?.trim();
+        if (css) {
+          if (/@import\b/i.test(css)) {
+            throw new Error(
+              "CSS @import is not allowed. Paste the stylesheet content into css instead.",
+            );
           }
 
-          for (const attributeName of ["src", "poster"]) {
-            const value = element.getAttribute(attributeName);
+          for (const match of css.matchAll(/url\(\s*(['"]?)(.*?)\1\s*\)/gi)) {
+            const value = match[2]?.trim();
             if (!value) continue;
             const resource = new URL(value, location.href);
             if (
@@ -610,9 +1051,67 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
               !allowedResourceOrigins.has(resource.origin)
             ) {
               throw new Error(
+                `CSS resource origin is not approved for ${provider.serviceName}: ${resource.origin}`,
+              );
+            }
+          }
+
+          const style = document.createElement("style");
+          style.dataset.msiSnippetStyle = provider.id;
+          style.textContent = css;
+          container.append(style);
+        }
+
+        for (const element of template.content.querySelectorAll("*")) {
+          for (const attribute of [...element.attributes]) {
+            const name = attribute.name.toLowerCase();
+            if (name.startsWith("on")) {
+              throw new Error(`Inline event attribute is not allowed: ${name}`);
+            }
+            if (name === "srcset") {
+              throw new Error("srcset is not allowed in snippet html.");
+            }
+            if (name === "style" && /url\s*\(/i.test(attribute.value)) {
+              throw new Error("CSS url() is not allowed in snippet html.");
+            }
+          }
+
+          for (const attributeName of [
+            "action",
+            "cite",
+            "formaction",
+            "href",
+            "poster",
+            "src",
+            "xlink:href",
+          ]) {
+            const value = element.getAttribute(attributeName);
+            if (!value) continue;
+            const resource = new URL(value, location.href);
+            const isEmbeddedResource = ["poster", "src"].includes(attributeName);
+            if (
+              !(isEmbeddedResource && ["data:", "blob:"].includes(resource.protocol)) &&
+              !allowedResourceOrigins.has(resource.origin)
+            ) {
+              throw new Error(
                 `Snippet resource origin is not approved for ${provider.serviceName}: ${resource.origin}`,
               );
             }
+          }
+
+          if (
+            (element.localName === "a" || element.localName === "area") &&
+            element.getAttribute("target")?.toLowerCase() === "_blank"
+          ) {
+            const rel = new Set(
+              (element.getAttribute("rel") ?? "")
+                .split(/\s+/)
+                .filter(Boolean)
+                .map((value) => value.toLowerCase()),
+            );
+            rel.add("noopener");
+            rel.add("noreferrer");
+            element.setAttribute("rel", [...rel].join(" "));
           }
         }
 
@@ -634,6 +1133,27 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
           const descriptor = typeof entry === "string" ? { src: entry } : entry;
           if (!descriptor?.src) {
             throw new Error("Every snippet script requires a src.");
+          }
+          loadedScripts.push(
+            await context.loadScript(descriptor.src, descriptor.attributes),
+          );
+        }
+
+        for (const entry of javascript) {
+          if (typeof entry === "function") {
+            await entry({
+              ...context,
+              root: context.prepared,
+              global: window,
+            });
+            continue;
+          }
+
+          const descriptor = typeof entry === "string" ? { src: entry } : entry;
+          if (!descriptor?.src) {
+            throw new Error(
+              "Every js entry must be a function, script URL, or { src, attributes } object.",
+            );
           }
           loadedScripts.push(
             await context.loadScript(descriptor.src, descriptor.attributes),
@@ -702,7 +1222,12 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     const shell = makeElement("section", "msi-third-party-embed");
     shell.dataset.instanceId = instance.id;
     shell.dataset.state = instance.status;
-    shell.setAttribute("aria-label", `${instance.provider.serviceName} 第三方內容`);
+    shell.lang = this.locale;
+    shell.dir = isRtlLocale(this.locale) ? "rtl" : "ltr";
+    shell.setAttribute(
+      "aria-label",
+      this._t("embed.ariaLabel", { serviceName: instance.provider.serviceName }),
+    );
 
     const content = makeElement("div", "msi-third-party-embed__content");
     content.dataset.msiEmbedContent = "";
@@ -718,7 +1243,11 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     loading.setAttribute("aria-live", "polite");
     loading.append(
       makeElement("span", "msi-third-party-loading__dot"),
-      makeElement("span", "", `正在安全載入 ${instance.provider.serviceName}…`),
+      makeElement(
+        "span",
+        "",
+        this._t("embed.loading", { serviceName: instance.provider.serviceName }),
+      ),
     );
     content.append(loading);
   }
@@ -730,49 +1259,55 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     shell.dataset.state = "blocked";
 
     const panel = makeElement("div", "msi-third-party-placeholder");
-    const eyebrow = makeElement("p", "msi-third-party-placeholder__eyebrow", "PRIVACY CONTROL");
-    const title = makeElement("h3", "msi-third-party-placeholder__title", "第三方內容目前已停用");
-    const description = makeElement("p", "msi-third-party-placeholder__description");
-    description.append(
-      "此內容由 ",
-      makeElement("strong", "", `${provider.serviceName}（${provider.companyName}）`),
-      " 提供。若您選擇載入，您的瀏覽器將與該服務建立連線；該服務可能接收您的 IP 位址、裝置及瀏覽器資訊，並可能在您的裝置上儲存或讀取 Cookie。",
-    );
-
-    const scope = makeElement(
+    const eyebrow = makeElement(
       "p",
-      "msi-third-party-placeholder__scope",
-      `此選擇將套用於本網站所有由 ${provider.serviceName} 提供的嵌入內容，您可以隨時撤回。`,
+      "msi-third-party-placeholder__eyebrow",
+      this._t("placeholder.eyebrow"),
     );
-
+    const title = makeElement(
+      "h3",
+      "msi-third-party-placeholder__title",
+      this._t("placeholder.title"),
+    );
+    const description = makeElement(
+      "p",
+      "msi-third-party-placeholder__description",
+      this._t("placeholder.description", {
+        serviceName: provider.serviceName,
+        companyName: provider.companyName,
+      }),
+    );
+    const purpose = makeElement(
+      "p",
+      "msi-third-party-placeholder__purpose",
+      this._t("placeholder.purpose", {
+        purpose: this._getProviderPurpose(provider),
+      }),
+    );
     const actions = makeElement("div", "msi-third-party-placeholder__actions");
     const accept = makeElement(
       "button",
       "msi-button msi-button--primary",
-      `同意並載入 ${provider.serviceName}`,
+      this._t("placeholder.accept", { serviceName: provider.serviceName }),
     );
     accept.type = "button";
-    accept.addEventListener("click", () => this.grant(provider.id));
-
-    const keepDisabled = makeElement(
-      "button",
-      "msi-button msi-button--secondary",
-      "維持停用",
-    );
-    keepDisabled.type = "button";
-    keepDisabled.addEventListener("click", () => {
-      panel.classList.add("is-declined");
-      scope.textContent = `${provider.serviceName} 內容維持停用。您仍可稍後選擇載入。`;
-      keepDisabled.disabled = true;
+    accept.addEventListener("click", async () => {
+      accept.disabled = true;
+      try {
+        await this.grant(provider.id);
+      } catch (error) {
+        accept.disabled = false;
+        this._emitError(error, instance);
+      }
     });
 
-    actions.append(accept, keepDisabled);
+    actions.append(accept);
 
     if (provider.privacyPolicyUrl) {
       const privacy = makeElement(
         "a",
         "msi-third-party-placeholder__privacy-link",
-        `查看 ${provider.serviceName} 隱私權政策`,
+        this._t("placeholder.privacy", { serviceName: provider.serviceName }),
       );
       privacy.href = provider.privacyPolicyUrl;
       privacy.target = "_blank";
@@ -780,7 +1315,13 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       actions.append(privacy);
     }
 
-    panel.append(eyebrow, title, description, scope, actions);
+    panel.append(
+      eyebrow,
+      title,
+      description,
+      purpose,
+      actions,
+    );
     content.append(panel);
   }
 
@@ -791,38 +1332,58 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
 
     const footer = makeElement("div", "msi-third-party-embed__privacy");
     footer.append(
-      makeElement("span", "", `內容由 ${instance.provider.serviceName} 提供`),
+      makeElement(
+        "span",
+        "",
+        this._t("footer.provider", { serviceName: instance.provider.serviceName }),
+      ),
     );
 
     if (instance.provider.privacyPolicyUrl) {
-      const privacy = makeElement("a", "", "隱私權政策");
+      const privacy = makeElement("a", "", this._t("common.privacyPolicy"));
       privacy.href = instance.provider.privacyPolicyUrl;
       privacy.target = "_blank";
       privacy.rel = "noopener noreferrer";
       footer.append(privacy);
     }
 
-    const revoke = makeElement(
-      "button",
-      "",
-      `撤回同意並停用 ${instance.provider.serviceName}`,
-    );
+    const revokeActionLabel =
+      instance.type === "iframe"
+        ? this._t("footer.revokeIframeAria", {
+            serviceName: instance.provider.serviceName,
+          })
+        : this._t("footer.revokeReloadAria");
+    const revoke = makeElement("button", "", this._t("footer.revoke"));
     revoke.type = "button";
-    revoke.addEventListener("click", () => this.revoke(instance.provider.id));
+    revoke.title = revokeActionLabel;
+    revoke.setAttribute("aria-label", revokeActionLabel);
+    revoke.addEventListener("click", async () => {
+      revoke.disabled = true;
+      try {
+        await this.revoke(instance.provider.id);
+      } catch (error) {
+        revoke.disabled = false;
+        this._emitError(error, instance);
+      }
+    });
     footer.append(revoke);
     shell.append(footer);
   }
 
-  _renderError(instance, error) {
+  _renderError(instance) {
     const { content } = this._createShell(instance);
     const panel = makeElement("div", "msi-third-party-error");
     panel.setAttribute("role", "alert");
     panel.append(
-      makeElement("strong", "", `${instance.provider.serviceName} 無法載入`),
+      makeElement(
+        "strong",
+        "",
+        this._t("error.title", { serviceName: instance.provider.serviceName }),
+      ),
       makeElement(
         "span",
         "",
-        error instanceof Error ? error.message : "發生未知錯誤。",
+        this._t("error.description"),
       ),
     );
     content.append(panel);
@@ -837,6 +1398,8 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     if (!this.settingsDialog) {
       this.settingsDialog = document.createElement("dialog");
       this.settingsDialog.className = "msi-third-party-settings";
+      this.settingsDialog.lang = this.locale;
+      this.settingsDialog.dir = isRtlLocale(this.locale) ? "rtl" : "ltr";
       document.body.append(this.settingsDialog);
       this.settingsDialog.addEventListener("close", () => {
         document.body.classList.remove("msi-third-party-settings-open");
@@ -845,7 +1408,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
 
     this._renderSettings();
     document.body.classList.add("msi-third-party-settings-open");
-    this.settingsDialog.showModal();
+    if (!this.settingsDialog.open) this.settingsDialog.showModal();
   }
 
   _renderSettings() {
@@ -855,10 +1418,21 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     const header = makeElement("header", "msi-third-party-settings__header");
     const heading = makeElement("div", "");
     heading.append(
-      makeElement("p", "msi-third-party-settings__eyebrow", "PRIVACY SETTINGS"),
-      makeElement("h2", "", "第三方內容設定"),
+      makeElement(
+        "p",
+        "msi-third-party-settings__eyebrow",
+        this._t("settings.eyebrow"),
+      ),
+      makeElement("h2", "", this._t("settings.title")),
     );
-    const close = makeElement("button", "msi-third-party-settings__close", "關閉");
+    const title = heading.querySelector("h2");
+    title.id = "msi-third-party-settings-title";
+    dialog.setAttribute("aria-labelledby", title.id);
+    const close = makeElement(
+      "button",
+      "msi-third-party-settings__close",
+      this._t("settings.close"),
+    );
     close.type = "button";
     close.addEventListener("click", () => dialog.close());
     header.append(heading, close);
@@ -866,7 +1440,7 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     const intro = makeElement(
       "p",
       "msi-third-party-settings__intro",
-      "您可以分別允許或停用各項第三方服務。停用後，頁面上的相關內容會立即卸載。",
+      this._t("settings.intro"),
     );
 
     const list = makeElement("div", "msi-third-party-settings__list");
@@ -877,11 +1451,15 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       const copy = makeElement("div", "");
       copy.append(
         makeElement("h3", "", provider.serviceName),
-        makeElement("p", "", provider.purpose.label),
+        makeElement(
+          "p",
+          "",
+          this._t(`providers.${provider.id}.purpose`, {}, provider.purpose.label),
+        ),
       );
 
       if (provider.privacyPolicyUrl) {
-        const link = makeElement("a", "", "隱私權政策");
+        const link = makeElement("a", "", this._t("common.privacyPolicy"));
         link.href = provider.privacyPolicyUrl;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
@@ -889,18 +1467,32 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       }
 
       const allowed = this.hasConsent(provider.id);
+      const willReload = this._providerNeedsReload(provider.id);
       const toggle = makeElement(
         "button",
         `msi-consent-toggle ${allowed ? "is-allowed" : ""}`,
-        allowed ? "已允許，點此停用" : "未允許，點此啟用",
+        allowed
+          ? willReload
+            ? this._t("settings.allowedReload")
+            : this._t("settings.allowedDisable")
+          : this._t("settings.notAllowed"),
       );
       toggle.type = "button";
       toggle.setAttribute("aria-pressed", String(allowed));
+      toggle.setAttribute(
+        "aria-label",
+        `${provider.serviceName}: ${toggle.textContent}`,
+      );
       toggle.addEventListener("click", async () => {
         toggle.disabled = true;
-        if (allowed) await this.revoke(provider.id);
-        else await this.grant(provider.id);
-        this._renderSettings();
+        try {
+          if (allowed) await this.revoke(provider.id);
+          else await this.grant(provider.id);
+          this._renderSettings();
+        } catch (error) {
+          toggle.disabled = false;
+          this._emitError(error);
+        }
       });
 
       row.append(copy, toggle);
@@ -919,7 +1511,8 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
   _readAllowedProviders() {
     const prefix = `${this.options.cookieName}=`;
     const cookie = document.cookie
-      .split("; ")
+      .split(";")
+      .map((entry) => entry.trim())
       .find((entry) => entry.startsWith(prefix));
 
     return decodeConsentCookie(
@@ -930,6 +1523,24 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
   }
 
   _writeAllowedProviders() {
+    const secure =
+      this.options.cookieSecure === true ||
+      (this.options.cookieSecure === "auto" && location.protocol === "https:");
+    const cookieAttributes = [
+      "Path=/",
+      "SameSite=Lax",
+      secure ? "Secure" : "",
+    ].filter(Boolean);
+
+    if (!this.allowed.size) {
+      document.cookie = [
+        `${this.options.cookieName}=`,
+        "Max-Age=0",
+        ...cookieAttributes,
+      ].join("; ");
+      return;
+    }
+
     const value = encodeConsentCookie(
       this.manifest.consentVersion,
       this.getAllowedProviderIds(),
@@ -939,26 +1550,20 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
       throw new Error(`Consent cookie is too large (${size} bytes).`);
     }
 
-    const maxAge = Math.max(1, Number(this.options.cookieMaxAgeDays)) * 86400;
-    const secure =
-      this.options.cookieSecure === true ||
-      (this.options.cookieSecure === "auto" && location.protocol === "https:");
+    const maxAge = Math.round(this.options.cookieMaxAgeDays * 86400);
 
     document.cookie = [
       `${this.options.cookieName}=${value}`,
       `Max-Age=${maxAge}`,
-      "Path=/",
-      "SameSite=Lax",
-      secure ? "Secure" : "",
-    ]
-      .filter(Boolean)
-      .join("; ");
+      ...cookieAttributes,
+    ].join("; ");
   }
 
-  _emitConsentChange(providerId, action) {
+  _emitConsentChange(providerId, action, willReload = false) {
     const detail = {
       providerId,
       action,
+      willReload,
       allowedProviderIds: this.getAllowedProviderIds(),
       consentVersion: this.manifest.consentVersion,
       manifestVersion: this.manifest.manifestVersion,
@@ -971,7 +1576,11 @@ export class MSIThirdPartyEmbedControl extends EventTarget {
     );
 
     if (typeof this.options.onConsentChange === "function") {
-      this.options.onConsentChange(detail);
+      try {
+        this.options.onConsentChange(detail);
+      } catch (error) {
+        this._emitError(error);
+      }
     }
   }
 

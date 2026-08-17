@@ -16,12 +16,19 @@
 
 ## 專案內容
 
+- `app/page.tsx`：Vercel 上顯示的完整使用手冊與 Demo 容器。
+- `app/globals.css`：Demo 網站樣式；由 Next.js 建置並由 Vercel 提供。
+- `public/demo/demo.js`：Demo 互動程式；只從 MSI Storage 匯入正式插件 JS。
+- `public/msi-logo.png`、`public/og-guide.png`：Demo 網站使用的本機圖片。
+- `public/plugin/translations.json`：Demo 使用的本機翻譯檔。
+- `public/third-party-providers.json`：Demo 使用的本機 Provider manifest。
 - `public/plugin/msi-third-party-embed.js`：可獨立使用的 ESM 插件。
 - `public/plugin/msi-third-party-embed.css`：插件 UI 樣式。
-- `public/third-party-providers.json`：線上 provider manifest 範例。
-- `public/demo/demo.js`：一般 iframe 與特殊 SDK 的完整整合示範。
-- `public/demo/mock-atlas-sdk.js`：支援非同步 API 與 unmount 的模擬 SDK。
-- `app/page.tsx`：互動式 Demo 頁面。
+
+Demo 網站只有以下兩個正式插件檔案從 MSI Storage 載入：
+
+- `https://storage-asset.msi.com/event/msi-third-party-embed/plugin/msi-third-party-embed.min.js`
+- `https://storage-asset.msi.com/event/msi-third-party-embed/plugin/msi-third-party-embed.min.css`
 
 ## 啟動
 
@@ -32,26 +39,58 @@ npm run dev
 
 瀏覽 `http://localhost:3000`。
 
+## 部署到 Vercel
+
+這是標準 Next.js 專案，不需要再輸出 HTML 或 `demo-render.min.js`。
+
+1. 將專案資料夾推送到 Git repository。
+2. 在 Vercel 選擇 **Add New → Project** 並匯入 repository。
+3. Framework Preset 選擇 **Next.js**；Build Command 與 Output Directory 使用 Vercel 預設值。
+4. 部署後，Vercel 會自動執行 `npm run build`。
+
+如需讓 Open Graph 網址固定使用正式網域，可在 Vercel Environment Variables 設定：
+
+```text
+NEXT_PUBLIC_SITE_URL=https://your-demo-domain.example
+```
+
+未設定時會自動使用 Vercel 的正式 Production URL。
+
+## 建置可上傳的正式插件檔案
+
+執行：
+
+```bash
+npm run build:plugin
+```
+
+將產生：
+
+- `dist/client/plugin/msi-third-party-embed.min.js`
+- `dist/client/plugin/msi-third-party-embed.min.css`
+
+這兩個 `.min` 檔可直接上傳至靜態資源伺服器。未壓縮的 JS 與 CSS 仍會保留在相同資料夾，供除錯使用。
+
 ## Provider manifest
 
 ```json
 {
   "schemaVersion": 1,
   "consentVersion": "2026-08-v1",
-  "manifestVersion": "2026-08-11.1",
+  "manifestVersion": "2026-08-11.2",
   "providers": [
     {
-      "id": "youtube",
-      "serviceName": "YouTube",
-      "companyName": "Google Ireland Limited",
+      "id": "youku-video",
+      "serviceName": "YOUKU Video",
+      "companyName": "优酷信息技术（北京）有限公司",
       "allowedFrameOrigins": [
-        "https://www.youtube-nocookie.com"
+        "https://player.youku.com"
       ],
       "purpose": {
         "id": "embedded-video",
-        "label": "播放由 YouTube 提供的外部影音內容"
+        "label": "播放由 YOUKU 提供的外部影音內容"
       },
-      "privacyPolicyUrl": "https://policies.google.com/privacy",
+      "privacyPolicyUrl": "https://terms.alicdn.com/legal-agreement/terms/privacy_policy_full/20231103155002859/20231103155002859.html",
       "consentRequired": true
     }
   ]
@@ -73,13 +112,15 @@ npm run dev
 ## 初始化
 
 ```html
-<link rel="stylesheet" href="/plugin/msi-third-party-embed.css">
+<link rel="stylesheet" href="https://storage-asset.msi.com/event/msi-third-party-embed/plugin/msi-third-party-embed.min.css">
 
 <script type="module">
-  import { MSIThirdPartyEmbedControl } from "/plugin/msi-third-party-embed.js";
+  import { MSIThirdPartyEmbedControl } from "https://storage-asset.msi.com/event/msi-third-party-embed/plugin/msi-third-party-embed.min.js";
 
   const control = new MSIThirdPartyEmbedControl({
-    manifestUrl: "/third-party-providers.json",
+    manifestUrl: "https://storage-asset.msi.com/event/msi-third-party-embed/third-party-providers.json",
+    translationsUrl: "https://storage-asset.msi.com/event/msi-third-party-embed/plugin/translations.json",
+    locale: "auto",
     cookieName: "msi_thirdPartyCookieControl",
     cookieMaxAgeDays: 180,
     onConsentChange(event) {
@@ -92,14 +133,18 @@ npm run dev
 </script>
 ```
 
+`locale` 預設為 `auto`，會讀取目前 hostname 的第一段子網域：`jp.msi.com` 使用 `jp`、`tw.msi.com` 使用 `tw`。插件會先比對完整站點代碼（例如 `arg`、`ca-fr`、`latam`），再回退至前兩碼；`www`、`mtc`、localhost、未知代碼或無法解析時一律使用英文。也可手動指定標準語系碼或市場名稱覆寫自動判斷。
+
 Cookie 採用精簡格式，只保存 consent version 與允許的 providerId：
 
 ```json
 {
   "v": "2026-08-v1",
-  "a": ["youtube", "atlas-metrics-demo"]
+  "a": ["youku-video", "sideqik-promotions"]
 }
 ```
+
+同意介面會說明此第一方偏好 Cookie 的名稱與保存天數。沒有任何已允許 Provider 時會刪除 Cookie；預設保存 180 天，自訂期限最多限制為 400 天。
 
 ## 一般 iframe
 
@@ -109,16 +154,17 @@ HTML 只提供 inert target：
 <div id="video-slot"></div>
 ```
 
-設計師建立設定物件：
+內容維護人員建立設定物件：
 
 ```js
 await control.create({
-  id: "product-video",
+  id: "youku-video-example",
   type: "iframe",
-  url: "https://www.youtube-nocookie.com/embed/VIDEO_ID",
-  title: "產品介紹影片",
-  target: "#video-slot",
-  allow: "encrypted-media; picture-in-picture"
+  providerId: "youku-video",
+  url: "https://player.youku.com/embed/YOUR_YOUKU_VID?client_id=YOUR_CLIENT_ID",
+  title: "YOUKU 影片",
+  target: "#demo-0",
+  allow: "autoplay; encrypted-media; fullscreen; picture-in-picture"
 });
 ```
 
@@ -126,13 +172,13 @@ await control.create({
 
 ## 特殊 DIV＋JavaScript SDK
 
-供應商提供的純 DIV 可以直接放入 `html`。把 `<script src>` 移到 `scripts`，原本的 inline 初始化程式移到 `mount()`：
+最簡單的使用方式就是把供應商內容拆成 `html`、`css`、`js`：
 
 ```js
 await control.create({
   type: "snippet",
   providerId: "metrics-provider",
-  target: "#metric-slot",
+  target: "#demo-6",
 
   html: `
     <div
@@ -141,22 +187,17 @@ await control.create({
     </div>
   `,
 
-  scripts: [
+  css: `.metrics-widget { min-height: 420px; }`,
+
+  js: [
+    // 原本的 inline JS 用函式包住
+    ({ global }) => {
+      global.metricsQueue = global.metricsQueue || [];
+    },
+
+    // 原本的 <script src="...">
     "https://widgets.example.com/sdk.js"
   ],
-
-  mount({ prepared, options, signal }) {
-    const widget = prepared.querySelector(".metrics-widget");
-
-    return window.MetricsSDK.mount(widget, {
-      ...options,
-      signal
-    });
-  },
-
-  unmount({ mountResult }) {
-    return mountResult?.destroy?.();
-  },
 
   options: {
     metricId: "health"
@@ -168,42 +209,83 @@ await control.create({
 
 1. 未同意時不插入 `html`，也不載入 `scripts`。
 2. 同意後插入 HTML，`{{metricId}}` 會以跳脫後的 `options.metricId` 代入。
-3. 如果有 `beforeLoad()`，先執行供應商要求的 global queue 或前置設定。
-4. 載入 manifest 核准 origin 下的 scripts。
-5. 執行 `mount()`。
-6. 撤回時 abort `signal` 並執行 `unmount()`。
+3. 插入 `css`；其中的外部資源仍須來自核准 origin，且不接受 `@import`。
+4. 依 `js` 陣列順序執行：函式代表 inline JS，URL 或 `{ src }` 代表外部 script。
+5. 如有進階 `mount()`，再執行 mount。
+6. 撤回 iframe provider：立即移除同 provider 的所有 iframe。
+7. 撤回 snippet/custom provider：先更新 Cookie，再重新整理頁面；重整後 SDK 不會再次載入。
 
-像 Sideqik 這類 inline bootstrap 會先建立 global queue，再插入外部 script，可使用：
+Sideqik、Gleam、Instagram 與 Facebook 的 SDK／掛載方式已內建在主套件。
+每個頁面只需要放入服務提供的 HTML，不需自行載入第三方 `<script>`。
+
+Sideqik：
 
 ```js
 await control.create({
   type: "snippet",
   providerId: "sideqik-promotions",
-  target: "#sideqik-slot",
+  target: "#demo-1",
   html: `
-    <div
-      class="sideqik-promotion"
-      data-token="de9Cjo6b"
-      data-promotion-url="https://sdqk.me/p/…">
+    <div class="sideqik-promotion" data-token="de9Cjo6b"
+      data-promotion-url="https://sdqk.me/p/…"></div>
+  `
+});
+```
+
+Gleam：
+
+```js
+await control.create({
+  type: "snippet",
+  providerId: "gleam-competitions",
+  target: "#demo-2",
+  html: `
+    <div class="giveaway__embed-placeholder">
+      <a class="e-widget generic-loader"
+        href="https://gleam.io/GcEwF/excellence-refined-giveaway"
+        rel="nofollow">Excellence Refined Giveaway</a>
     </div>
-  `,
-  beforeLoad() {
-    window.sideqik = window.sideqik || function () {
-      (window.sideqik.q = window.sideqik.q || []).push(arguments);
-    };
-  },
-  scripts: [{
-    src: "https://d1hrk5gt3yn7pi.cloudfront.net/api/sideqik-api-1.4.js#ACCOUNT_ID",
-    attributes: { id: "sideqik-sdk" }
-  }]
+  `
+});
+```
+
+Instagram 會在取得同意後把 permalink 轉成 `embed/captioned` iframe，顯示貼文說明與互動入口：
+
+Facebook SDK 的 Graph API 版本集中定義為 `v25.0`，不要省略 `version` 參數，
+否則 SDK 會回報 `invalid version specified`。
+
+```js
+await control.create({
+  type: "snippet",
+  providerId: "instagram-embeds",
+  target: "#demo-3",
+  html: `
+    <blockquote class="instagram-media"
+      data-instgrm-permalink="https://www.instagram.com/p/Db3Eif_ASSQ/"
+      data-instgrm-version="14"></blockquote>
+  `
+});
+
+await control.create({
+  type: "snippet",
+  providerId: "facebook-embeds",
+  target: "#demo-4",
+  html: `
+    <div class="fb-post"
+      data-href="https://www.facebook.com/story.php?story_fbid=1016192431171299&amp;id=100083416537348"
+      data-width="500"
+      data-show-text="true"></div>
+  `
 });
 ```
 
 `html` 不能包含 `<script>`、`iframe`、`object`、`embed`、inline `onclick` 或 CSS `url()`；這些內容可能自行發出請求或執行程式。iframe 應使用 `type: "iframe"`，外部 JS 應使用 `scripts`。
 
+`html`、`css` 與函式型 `js` 都屬於受信任的應用程式碼，不是 HTML sandbox。只允許由開發團隊審核後寫入版本庫；不得直接把 CMS、URL 參數、表單或其他未受信任輸入傳入。第三方 CSS 仍可能影響宿主頁面，正式整合前應檢查 selector 範圍，必要時使用 provider 專用 adapter 或隔離 iframe。
+
 ### 可重複使用的中央 Adapter
 
-如果同一套供應商 snippet 會在很多頁面重複使用，可以由開發者先註冊 adapter，讓設計師只需要提供 `options`。一般內容編輯者不應直接註冊任意 adapter code。
+如果同一套供應商 snippet 會在很多頁面重複使用，可以由開發者先註冊 adapter，讓內容維護人員只需要提供 `options`。一般內容編輯者不應直接註冊任意 adapter code。
 
 假設供應商原本提供：
 
@@ -258,7 +340,7 @@ control.registerAdapter("metrics-widget", {
 });
 ```
 
-設計師只需要選擇已註冊的 provider 與 adapter：
+內容維護人員只需要選擇已註冊的 provider 與 adapter：
 
 ```js
 await control.create({
@@ -266,36 +348,36 @@ await control.create({
   type: "custom",
   providerId: "metrics-provider",
   adapter: "metrics-widget",
-  target: "#metric-slot",
+  target: "#demo-6",
   options: {
     metricId: "product-health"
   }
 });
 ```
 
-Adapter 生命週期：
+進階 Adapter 生命週期：
 
 1. 未同意：只顯示第一方 placeholder。
 2. 同意：呼叫 `prepare()` 建立供應商要求的 inert DIV。
 3. 呼叫 `load()` 載入核准 origin 的 SDK。
 4. SDK 完成：呼叫每個實例的 `mount()` 與後續 API。
 5. `mount()` 可回傳 cleanup function、含 `unmount()` 的物件，或由 adapter 提供 `unmount()`。
-6. 撤回：abort `signal`、呼叫 cleanup、移除容器並還原 placeholder。
+6. 預設撤回：更新 Cookie 後重新整理頁面。
 
 `providerIds` 將 adapter 限制在指定的核准服務，避免內容設定把某個 SDK adapter 與錯誤的 provider 組合。
 
-第三方 script 一旦執行，瀏覽器無法真正「反執行」程式碼。因此 adapter 必須使用供應商提供的 destroy/unmount API，停止計時器、事件監聽與 API 工作。對於沒有清理能力的 SDK，正式環境應考慮撤回後重新整理頁面。
+第三方 script 一旦執行，瀏覽器無法真正「反執行」程式碼。因此插件預設在撤回 snippet/custom provider 時重新整理頁面。只有明確設定 `reloadOnCustomRevoke: false` 時，才必須依賴 adapter 的 destroy/unmount API 完整停止計時器、事件監聽與 API 工作。
 
 如果供應商 SDK 只會在 `<script>` 第一次執行時自動掃描 DIV，卻沒有 `mount()`、`scan()` 或 `refresh()` API，就無法可靠建立第二個動態實例。這種 SDK 必須由該 provider 的專用 adapter 特別處理，必要時限制每頁只能一個實例。
 
 ## 同意與撤回 API
 
 ```js
-await control.grant("youtube");
-await control.revoke("youtube");
+await control.grant("youku-video");
+await control.revoke("youku-video");
 await control.revokeAll();
 
-control.hasConsent("youtube");
+control.hasConsent("youku-video");
 control.getAllowedProviderIds();
 control.getConsentCookieSize();
 control.openSettings();
@@ -323,7 +405,8 @@ document.addEventListener("msi:third-party-consent-change", ({ detail }) => {
 - Manifest 使用第一方 HTTPS URL，並限制 CORS。
 - 後端與前端使用同一份核准 provider 資料。
 - CSP `frame-src`、`script-src` 與核准來源一致。
-- 不允許設計師傳入任意 adapter code、script URL 或 raw HTML。
+- 不允許一般內容編輯者傳入任意 adapter code、script URL 或 raw HTML。
+- 自訂 HTML / CSS / JS 必須經 code review；第三方 CSS selector 不得污染宿主頁面。
 - Placeholder 圖片、字型與其他資源同樣不得在同意前連線到第三方。
 - 撤回入口同時存在於每個已載入元件下方與全站設定中心。
 - 設定 cookie 不兼作分析、廣告或跨站識別。

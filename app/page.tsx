@@ -1,266 +1,488 @@
-import type { Metadata } from "next";
 import Script from "next/script";
 
-export const metadata: Metadata = {
-  title: "MSI Privacy Embed Control — 完整示範",
-  description:
-    "以事前同意控制 iframe 與第三方 JavaScript SDK 的載入、同步與撤回生命週期。",
-};
+const mainProgramCode = `<link rel="stylesheet"
+  href="https://storage-asset.msi.com/event/msi-third-party-embed/plugin/msi-third-party-embed.min.css">
+
+<script type="module">
+  import { MSIThirdPartyEmbedControl } from
+    "https://storage-asset.msi.com/event/msi-third-party-embed/plugin/msi-third-party-embed.min.js";
+
+  const control = new MSIThirdPartyEmbedControl();
+  await control.init();
+
+  // 將各服務章節的 control.create(...) 接在這裡
+</script>`;
+
+const youkuEmbed = `await control.create({
+  type: "iframe",
+  providerId: "youku-video",
+  target: "#demo-0",
+  url: "https://player.youku.com/embed/YOUR_YOUKU_VID?client_id=YOUR_CLIENT_ID",
+  title: "YOUKU 影片",
+  allow: "autoplay; encrypted-media; fullscreen; picture-in-picture"
+});`;
+
+const sideqikEmbed = `await control.create({
+  type: "snippet",
+  providerId: "sideqik-promotions",
+  target: "#demo-1",
+  html: \`
+    <div class="sideqik-promotion" data-token="de9Cjo6b"
+      data-promotion-url="https://sdqk.me/p/the-desk-my-stage-aug-2026_hq-de9Cjo6b"></div>
+  \`
+});`;
+
+const gleamEmbed = `await control.create({
+  type: "snippet",
+  providerId: "gleam-competitions",
+  target: "#demo-2",
+  html: \`
+    <div class="giveaway__embed-placeholder">
+      <a class="e-widget generic-loader"
+        href="https://gleam.io/GcEwF/excellence-refined-giveaway"
+        rel="nofollow">
+        Excellence Refined Giveaway
+      </a>
+    </div>
+  \`
+});`;
+
+const instagramEmbed = `await control.create({
+  type: "snippet",
+  providerId: "instagram-embeds",
+  target: "#demo-3",
+  html: \`
+    <blockquote class="instagram-media"
+      data-instgrm-permalink="https://www.instagram.com/p/Db3Eif_ASSQ/"
+      data-instgrm-version="14">
+    </blockquote>
+  \`
+});`;
+
+const facebookEmbed = `await control.create({
+  type: "snippet",
+  providerId: "facebook-embeds",
+  target: "#demo-4",
+  html: \`
+    <div class="fb-post"
+      data-href="https://www.facebook.com/story.php?story_fbid=1016192431171299&amp;id=100083416537348"
+      data-width="500"
+      data-show-text="true">
+    </div>
+  \`
+});`;
+
+const genericSnippet = `await control.create({
+  type: "snippet",
+  providerId: "approved-provider-id",
+  target: "#demo-5",
+
+  html: '<div class="vendor-widget" data-id="{{contentId}}"></div>',
+  css: '.vendor-widget { min-height: 320px; }',
+  js: [
+    ({ global, root, options, signal }) => {
+      // 只有同意後才會執行；可在這裡初始化 queue 或呼叫 API
+    },
+    { src: "https://vendor.example/sdk.js" }
+  ],
+  options: { contentId: "content-123" }
+});`;
+
+function CodeBlock({
+  id,
+  code,
+  language = "JavaScript",
+}: {
+  id: string;
+  code: string;
+  language?: string;
+}) {
+  return (
+    <div className="code-block">
+      <div className="code-toolbar">
+        <span>{language}</span>
+        <button type="button" data-copy-target={id}>複製</button>
+      </div>
+      <pre id={id}><code>{code}</code></pre>
+    </div>
+  );
+}
 
 export default function Home() {
   return (
-    <main>
-      <header className="topbar">
-        <a className="brand" href="#top" aria-label="MSI Privacy Embed Control 首頁">
-          <span className="brand-mark">M</span>
+    <main className="manual-shell" id="top">
+      <aside className="manual-sidebar" aria-label="使用手冊導覽">
+        <a className="manual-brand" href="#top">
+          <span className="brand-logo-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="brand-logo"
+              src="/msi-logo.png"
+              alt="MSI"
+              width={155}
+              height={65}
+            />
+          </span>
           <span>
             <strong>Privacy Embed Control</strong>
-            <small>Developer demonstration</small>
+            <small>使用手冊</small>
           </span>
         </a>
-        <button className="topbar-action" type="button" data-open-settings>
-          第三方內容設定
-        </button>
-      </header>
 
-      <section className="hero" id="top">
-        <div className="hero-copy">
-          <p className="kicker">CONSENT-GATED EMBEDS</p>
-          <h1>
-            外部內容，<br />
-            只在同意後啟動。
-          </h1>
-          <p className="hero-lead">
-            一個零依賴 JavaScript 插件，統一管理標準 iframe 與需要
-            DIV、SDK、API 呼叫的特殊第三方元件。
-          </p>
-          <div className="hero-actions">
-            <a href="#live-demo" className="primary-link">
-              開始互動示範
-            </a>
-            <a href="#integration" className="secondary-link">
-              查看整合方式
-            </a>
-          </div>
+        <nav className="manual-nav">
+          <p>開始使用</p>
+          <a href="#overview"><span>01</span>工具概覽</a>
+          <a href="#quick-start"><span>02</span>快速開始</a>
+          <a href="#provider-manifest"><span>03</span>Provider 白名單</a>
+          <p>第三方服務</p>
+          <a href="#youku"><span>04</span>YOUKU 影片</a>
+          <a href="#sideqik"><span>05</span>Sideqik 活動</a>
+          <a href="#gleam"><span>06</span>Gleam 抽獎</a>
+          <a href="#instagram"><span>07</span>Instagram 貼文</a>
+          <a href="#facebook"><span>08</span>Facebook 貼文</a>
+          <a href="#generic-snippet"><span>09</span>HTML / CSS / JS</a>
+          <p>管理與參考</p>
+          <a href="#revoke"><span>10</span>撤回與生命週期</a>
+          <a href="#api-reference"><span>11</span>參數參考</a>
+          <a href="#runtime"><span>12</span>執行狀態</a>
+        </nav>
+
+        <div className="sidebar-footer">
+          <span className="version-badge">v0.1 / Internal</span>
+          <button type="button" data-open-settings>管理第三方同意</button>
         </div>
+      </aside>
 
-        <aside className="status-console" aria-label="目前隱私控制狀態">
-          <div className="console-header">
-            <span>CONTROL STATUS</span>
-            <span className="live-indicator">LIVE</span>
-          </div>
-          <dl>
-            <div>
-              <dt>Provider manifest</dt>
-              <dd id="manifest-state">載入中…</dd>
-            </div>
-            <div>
-              <dt>允許的 providerId</dt>
-              <dd id="consent-list">
-                <span className="status-empty">讀取中…</span>
-              </dd>
-            </div>
-            <div>
-              <dt>Consent cookie 大小</dt>
-              <dd id="cookie-size">— bytes</dd>
-            </div>
-          </dl>
-          <div className="console-actions">
-            <button type="button" data-open-settings>
-              管理設定
-            </button>
-            <button type="button" id="revoke-all">
-              全部撤回
-            </button>
-          </div>
-        </aside>
-      </section>
-
-      <section className="principles" aria-label="核心保護措施">
-        <article>
-          <span>01</span>
-          <h2>事前封鎖</h2>
-          <p>HTML 初始狀態沒有第三方 iframe src，也不載入外部 SDK。</p>
-        </article>
-        <article>
-          <span>02</span>
-          <h2>Provider 同步</h2>
-          <p>同意一次，同頁面所有相同 provider 的實例一起安全啟用。</p>
-        </article>
-        <article>
-          <span>03</span>
-          <h2>可逆生命週期</h2>
-          <p>撤回後立即卸載 iframe、取消 API 工作並執行 adapter cleanup。</p>
-        </article>
-      </section>
-
-      <section className="demo-section" id="live-demo">
-        <div className="section-heading">
+      <div className="manual-page">
+        <header className="manual-topbar">
           <div>
-            <p className="kicker">LIVE DEMONSTRATION</p>
-            <h2>兩種載入模式，同一套同意控制</h2>
+            <span>MSI Web Platform</span>
+            <b>/</b>
+            <strong>Third-party Embed Guide</strong>
           </div>
-          <p>
-            請實際點擊同意與撤回。YouTube 共有兩個實例，用來驗證相同 provider
-            會同步載入與卸載。
-          </p>
+          <button type="button" data-open-settings>第三方內容設定</button>
+        </header>
+
+        <div className="manual-content">
+          <section className="doc-intro" id="overview">
+            <div className="doc-meta">
+              <span>INTERNAL DOCUMENTATION</span>
+              <span>最後更新：2026-08-11</span>
+            </div>
+            <h1>第三方嵌入工具<br />使用手冊</h1>
+            <p>
+              本文件提供網站建置與內容維護人員整合第三方 iframe、HTML、CSS
+              與 JavaScript 的標準方式。插件會在訪客同意前阻止第三方連線，並只允許後端與
+              Provider manifest 已核准的服務。
+            </p>
+            <h2>引入主程式</h2>
+            <p>每個使用第三方嵌入工具的頁面先加入以下程式碼，再接續各服務章節的嵌入設定。</p>
+            <CodeBlock id="code-main-program" code={mainProgramCode} language="HTML" />
+            <div className="doc-callout doc-callout--important">
+              <strong>使用前提</strong>
+              <p>新服務必須先完成內部申請。未列入 Provider JSON 白名單的網域，前端插件不會載入。</p>
+            </div>
+          </section>
+
+          <section className="doc-section" id="quick-start">
+            <div className="section-index">02</div>
+            <div className="section-body">
+              <div className="section-title">
+                <p>GETTING STARTED</p>
+                <h2>快速開始</h2>
+              </div>
+              <ol className="step-list">
+                <li>
+                  <span>1</span>
+                  <div>
+                    <strong>確認服務已核准</strong>
+                    <p>
+                      先確認服務是否已列入 Provider 白名單。若沒有，請聯絡
+                      <b className="approval-contact">Ran#2084</b>，告知需要加入白名單；核准後再取得 Provider ID。
+                    </p>
+                  </div>
+                </li>
+                <li><span>2</span><div><strong>在頁面建立容器</strong><p>準備一個有唯一 ID 的 DIV，例如 <code>&lt;div id=&quot;demo-0&quot;&gt;&lt;/div&gt;</code>。</p></div></li>
+                <li><span>3</span><div><strong>建立嵌入物件</strong><p>依服務章節複製設定。插件會自動顯示同意區塊、同步同一 Provider，並處理撤回。</p></div></li>
+              </ol>
+              <div className="doc-callout">
+                <strong>不需要自行處理 Cookie</strong>
+                <p><code>msi_thirdPartyCookieControl</code> 由插件統一管理，內容只保存已允許的 Provider ID 與 consent version。</p>
+              </div>
+              <div className="doc-callout">
+                <strong>介面翻譯集中管理</strong>
+                <p><code>https://storage-asset.msi.com/event/msi-third-party-embed/plugin/translations.json</code> 管理所有插件元件文字。預設使用 <code>locale: &quot;auto&quot;</code>，從目前網域的第一段子網域判斷，例如 <code>jp.msi.com</code> 使用日文、<code>tw.msi.com</code> 使用繁中；<code>www</code>、<code>mtc</code> 或無法比對時使用英文。</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="doc-section" id="provider-manifest">
+            <div className="section-index">03</div>
+            <div className="section-body">
+              <div className="section-title">
+                <p>APPROVAL WORKFLOW</p>
+                <h2>Provider 白名單</h2>
+              </div>
+              <p className="section-lead">
+                Provider JSON 是前端唯一可信清單。編輯者可以填入影片 ID、活動 token
+                等內容參數，但不能自行新增供應商網域。
+              </p>
+              <div className="approval-flow" aria-label="第三方服務核准流程">
+                <div><span>01</span><strong>提出申請</strong><small>服務、公司、用途、隱私政策</small></div>
+                <i>→</i>
+                <div><span>02</span><strong>安全核准</strong><small>後端 CSP 與來源網域</small></div>
+                <i>→</i>
+                <div><span>03</span><strong>更新 JSON</strong><small>Provider ID 與允許來源</small></div>
+                <i>→</i>
+                <div><span>04</span><strong>提供範例</strong><small>使用人員複製設定物件</small></div>
+              </div>
+              <div className="field-table" role="table" aria-label="Provider JSON 欄位">
+                <div className="field-row field-row--head" role="row"><span>欄位</span><span>用途</span><span>維護者</span></div>
+                <div className="field-row" role="row"><code>id</code><span>Cookie 與程式使用的穩定識別碼</span><b>平台管理者</b></div>
+                <div className="field-row" role="row"><code>allowedFrameOrigins</code><span>iframe 可載入的精確 origin</span><b>平台管理者</b></div>
+                <div className="field-row" role="row"><code>allowedScriptOrigins</code><span>外部 JavaScript 可載入的精確 origin</span><b>平台管理者</b></div>
+                <div className="field-row" role="row"><code>privacyPolicyUrl</code><span>同意介面顯示的供應商隱私政策</span><b>平台管理者</b></div>
+              </div>
+            </div>
+          </section>
+
+          <section className="doc-section provider-section" id="youku">
+            <div className="section-index">04</div>
+            <div className="section-body">
+              <div className="provider-heading">
+                <div>
+                  <div className="provider-tags"><span>IFRAME</span><span>VIDEO</span></div>
+                  <h2>YOUKU 影片</h2>
+                  <p>適用於中國市場的優酷影片播放器。iframe 只會在訪客同意後建立。</p>
+                </div>
+                <div className="provider-origin"><small>允許來源</small><code>player.youku.com</code></div>
+              </div>
+
+              <h3>頁面嵌入</h3>
+              <CodeBlock id="code-youku-embed" code={youkuEmbed} />
+
+              <h3>同意介面預覽</h3>
+              <div id="demo-0" className="embed-target manual-embed" />
+            </div>
+          </section>
+
+          <section className="doc-section provider-section" id="sideqik">
+            <div className="section-index">05</div>
+            <div className="section-body">
+              <div className="provider-heading">
+                <div>
+                  <div className="provider-tags"><span>HTML</span><span>CSS</span><span>JS SDK</span></div>
+                  <h2>Sideqik Promotions</h2>
+                  <p>適用於 Sideqik 活動頁與互動式 promotion。DIV 與 SDK 都在同意後才加入頁面。</p>
+                </div>
+                <div className="provider-origin"><small>允許來源</small><code>sdqk.me</code><code>*.cloudfront.net</code></div>
+              </div>
+
+              <h3>準備資料</h3>
+              <ul className="check-list">
+                <li>從 Sideqik 複製完整的 <code>sideqik-promotion</code> DIV</li>
+                <li>確認 DIV 內含 <code>data-token</code> 與完整的 <code>data-promotion-url</code></li>
+                <li>不需要另外複製 Sideqik 提供的 script</li>
+              </ul>
+              <h3>頁面嵌入</h3>
+              <CodeBlock id="code-sideqik" code={sideqikEmbed} />
+              <div className="doc-callout">
+                <strong>Sideqik 共用程序已集中管理</strong>
+                <p>Queue 初始化、共用 CSS、SDK 網址與載入順序已在主要控制程式註冊；每個活動只需要更換上面的 HTML。</p>
+              </div>
+              <h3>同意介面預覽</h3>
+              <div id="demo-1" className="embed-target manual-embed" />
+              <p className="preview-note">撤回 Sideqik 時，插件會先更新 Cookie 再重新整理頁面，避免已執行的 SDK 留在記憶體中。</p>
+            </div>
+          </section>
+
+          <section className="doc-section provider-section" id="gleam">
+            <div className="section-index">06</div>
+            <div className="section-body">
+              <div className="provider-heading">
+                <div>
+                  <div className="provider-tags"><span>HTML</span><span>JS SDK</span><span>GIVEAWAY</span></div>
+                  <h2>Gleam Competitions</h2>
+                  <p>適用於 Gleam 抽獎與互動式活動。活動連結保留在供應商提供的 HTML，SDK 由主要控制程式統一載入。</p>
+                </div>
+                <div className="provider-origin"><small>允許來源</small><code>gleam.io</code><code>widget.gleamjs.io</code></div>
+              </div>
+
+              <h3>準備資料</h3>
+              <ul className="check-list">
+                <li>從 Gleam 複製完整的活動 DIV 與連結</li>
+                <li>確認連結包含 <code>e-widget generic-loader</code> class</li>
+                <li>移除原始碼中的 <code>&lt;script&gt;</code>，不需要自行放入 SDK</li>
+              </ul>
+              <p className="source-note">
+                官方文件：<a href="https://gleam.io/docs/competitions/installation/add-page" target="_blank" rel="noreferrer">Gleam Competition 嵌入說明</a>
+                <span>·</span>
+                <a href="https://gleam.io/privacy" target="_blank" rel="noreferrer">隱私政策</a>
+              </p>
+
+              <h3>頁面嵌入</h3>
+              <CodeBlock id="code-gleam" code={gleamEmbed} />
+              <div className="doc-callout">
+                <strong>Gleam 共用程序已集中管理</strong>
+                <p><code>widget.gleamjs.io/e.js</code>、共用 CSS 與載入順序已在主要控制程式註冊；每個活動只需要更換上面的 HTML。</p>
+              </div>
+              <h3>同意介面預覽</h3>
+              <div id="demo-2" className="embed-target manual-embed" />
+              <p className="preview-note">只有同意 Gleam Competitions 後，活動 HTML 與 Gleam SDK 才會加入頁面；撤回時會更新 Cookie 並重新整理。</p>
+            </div>
+          </section>
+
+          <section className="doc-section provider-section" id="instagram">
+            <div className="section-index">07</div>
+            <div className="section-body">
+              <div className="provider-heading">
+                <div>
+                  <div className="provider-tags"><span>HTML</span><span>IFRAME</span><span>SOCIAL</span></div>
+                  <h2>Instagram 貼文</h2>
+                  <p>適用於公開 Instagram 貼文與 Reels。頁面只提供 blockquote 與貼文網址，主要控制程式會在取得同意後轉換為 Instagram iframe。</p>
+                </div>
+                <div className="provider-origin"><small>允許來源</small><code>www.instagram.com</code><code>static.cdninstagram.com</code></div>
+              </div>
+
+              <h3>準備資料</h3>
+              <ul className="check-list">
+                <li>必須是可以公開瀏覽的 Instagram 貼文或 Reel</li>
+                <li>使用不含 <code>igsh</code> 等追蹤參數的公開貼文 permalink</li>
+                <li>不需要放入 Instagram 的 <code>embed.js</code> 或 iframe</li>
+              </ul>
+              <p className="source-note">
+                官方文件：<a href="https://developers.facebook.com/docs/instagram-platform/instagram-embed/" target="_blank" rel="noreferrer">Instagram Embed</a>
+                <span>·</span>
+                <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noreferrer">Meta 隱私政策</a>
+              </p>
+
+              <h3>頁面嵌入</h3>
+              <CodeBlock id="code-instagram" code={instagramEmbed} />
+              <div className="doc-callout"><strong>Instagram iframe 已集中管理</strong><p>主要控制程式會驗證 permalink，並在取得同意後建立 <code>embed/captioned</code> iframe。高度會依嵌入寬度在 920–1200px 間自動調整，內容較長時可在嵌入區捲動。</p></div>
+              <h3>同意介面預覽</h3>
+              <div id="demo-3" className="embed-target manual-embed" />
+              <p className="preview-note">備註：完整模式會顯示貼文說明、愛心、讚數、留言、分享與儲存入口；高度會隨版面寬度自動調整，內容較長時可在嵌入區捲動。實際互動由 Instagram 處理，使用者可能需要登入。分享網址已移除 <code>igsh</code> 追蹤參數，且只有同意後才會向 Instagram 建立連線。</p>
+            </div>
+          </section>
+
+          <section className="doc-section provider-section" id="facebook">
+            <div className="section-index">08</div>
+            <div className="section-body">
+              <div className="provider-heading">
+                <div>
+                  <div className="provider-tags"><span>HTML</span><span>JS SDK</span><span>SOCIAL</span></div>
+                  <h2>Facebook 貼文</h2>
+                  <p>適用於公開 Facebook 粉絲專頁貼文。頁面只提供 fb-post DIV 與貼文網址，Facebook SDK 由主要控制程式統一載入。</p>
+                </div>
+                <div className="provider-origin"><small>允許來源</small><code>www.facebook.com</code><code>connect.facebook.net</code><code>static.xx.fbcdn.net</code></div>
+              </div>
+
+              <h3>準備資料</h3>
+              <ul className="check-list">
+                <li>必須是可以公開瀏覽的 Facebook 貼文</li>
+                <li>把分享網址轉成不含追蹤參數的完整貼文網址，再放入 <code>data-href</code></li>
+                <li>不需要放入 Facebook SDK script 或 <code>fb-root</code></li>
+              </ul>
+              <p className="source-note">
+                官方文件：<a href="https://developers.facebook.com/docs/plugins/embedded-posts/" target="_blank" rel="noreferrer">Facebook Embedded Posts</a>
+                <span>·</span>
+                <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noreferrer">Meta 隱私政策</a>
+              </p>
+
+              <h3>頁面嵌入</h3>
+              <CodeBlock id="code-facebook" code={facebookEmbed} />
+              <div className="doc-callout"><strong>Facebook 共用程序已集中管理</strong><p>Facebook SDK、Graph API <code>v25.0</code>、共用 CSS 與 <code>FB.XFBML.parse()</code> 已在主要控制程式註冊；每篇貼文只需要更換 <code>data-href</code>。</p></div>
+              <h3>同意介面預覽</h3>
+              <div id="demo-4" className="embed-target manual-embed" />
+              <p className="preview-note">此處使用你提供的 MSI Gaming 公開貼文。只有同意後才會向 Facebook 建立連線。</p>
+            </div>
+          </section>
+
+          <section className="doc-section" id="generic-snippet">
+            <div className="section-index">09</div>
+            <div className="section-body">
+              <div className="section-title"><p>GENERIC INTEGRATION</p><h2>HTML / CSS / JS</h2></div>
+              <p className="section-lead">供應商給的是一段 DIV、樣式與 JavaScript 時，直接拆到三個欄位。插件會依序放入 HTML、套用 CSS、最後執行 JS。</p>
+              <CodeBlock id="code-generic-snippet" code={genericSnippet} />
+              <div className="doc-callout doc-callout--warning">
+                <strong>不要貼入 JavaScript 字串</strong>
+                <p>Inline JavaScript 請包成函式；外部檔案使用 URL 或 <code>{`{ src, attributes }`}</code>。插件不使用 <code>eval()</code>。</p>
+              </div>
+              <div className="doc-callout">
+                <strong>只接受經審核的程式碼</strong>
+                <p><code>html</code>、<code>css</code> 與函式型 <code>js</code> 不是 sandbox，不得直接帶入 CMS、網址參數或表單內容。第三方 CSS selector 也要確認不會影響頁面其他區塊。</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="doc-section" id="revoke">
+            <div className="section-index">10</div>
+            <div className="section-body">
+              <div className="section-title"><p>CONSENT LIFECYCLE</p><h2>撤回與生命週期</h2></div>
+              <div className="behavior-grid">
+                <article><span>IFRAME</span><h3>立即註銷</h3><p>移除 iframe 與第三方連線，原位置重新顯示同意佔位區塊，不需要重新整理頁面。</p></article>
+                <article><span>HTML + JS</span><h3>重新整理</h3><p>先從 Cookie 移除 Provider ID，再重新整理頁面，確保第三方 SDK、計時器與事件監聽完整停止。</p></article>
+              </div>
+              <div className="doc-callout"><strong>同一 Provider 同步處理</strong><p>同意或撤回會套用到目前頁面所有相同 Provider ID 的嵌入實例。</p></div>
+            </div>
+          </section>
+
+          <section className="doc-section" id="api-reference">
+            <div className="section-index">11</div>
+            <div className="section-body">
+              <div className="section-title"><p>REFERENCE</p><h2>參數參考</h2></div>
+              <div className="field-table field-table--api" role="table" aria-label="create API 參數">
+                <div className="field-row field-row--head" role="row"><span>參數</span><span>說明</span><span>必填</span></div>
+                <div className="field-row" role="row"><code>type</code><span><code>iframe</code> 或 <code>snippet</code></span><b>是</b></div>
+                <div className="field-row" role="row"><code>providerId</code><span>Provider JSON 內已核准的 ID</span><b>snippet 必填</b></div>
+                <div className="field-row" role="row"><code>target</code><span>放置元件的 CSS selector 或元素</span><b>是</b></div>
+                <div className="field-row" role="row"><code>url</code><span>完整 iframe URL，origin 必須核准</span><b>iframe 必填</b></div>
+                <div className="field-row" role="row"><code>html / css / js</code><span>同意後依序處理的第三方內容</span><b>snippet 使用</b></div>
+                <div className="field-row" role="row"><code>options</code><span>替換 HTML 變數或提供 inline JS 的資料</span><b>否</b></div>
+                <div className="field-row" role="row"><code>locale / translationsUrl</code><span>插件介面語系與翻譯 JSON 路徑；locale 預設為 auto</span><b>否</b></div>
+              </div>
+            </div>
+          </section>
+
+          <section className="doc-section" id="runtime">
+            <div className="section-index">12</div>
+            <div className="section-body">
+              <div className="section-title"><p>RUNTIME INSPECTOR</p><h2>目前執行狀態</h2></div>
+              <div className="runtime-grid">
+                <aside className="status-panel" aria-label="目前隱私控制狀態">
+                  <div><span>Provider manifest</span><strong id="manifest-state">載入中…</strong></div>
+                  <div><span>允許的 Provider ID</span><strong id="consent-list"><i className="status-empty">讀取中…</i></strong></div>
+                  <div><span>Consent Cookie 大小</span><strong id="cookie-size">— bytes</strong></div>
+                  <footer><button type="button" data-open-settings>管理設定</button><button type="button" id="revoke-all">全部撤回</button></footer>
+                </aside>
+                <div>
+                  <h3>生命週期紀錄</h3>
+                  <ol id="activity-log" className="activity-log" aria-live="polite" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="doc-section final-checklist">
+            <div className="section-index">✓</div>
+            <div className="section-body">
+              <div className="section-title"><p>BEFORE PUBLISHING</p><h2>上線前檢查</h2></div>
+              <ul className="launch-checks">
+                <li>後端 CSP / iframe 白名單已核准來源網域</li>
+                <li>Provider JSON 包含公司名稱、用途與隱私政策</li>
+                <li>初始 HTML 沒有第三方 iframe src 或 script</li>
+                <li>拒絕同意時不會建立第三方連線</li>
+                <li>頁面可從設定入口與元件下方撤回同意</li>
+              </ul>
+            </div>
+          </section>
         </div>
 
-        <article className="demo-block">
-          <div className="demo-label">
-            <span>MODE 01</span>
-            <div>
-              <h3>標準 iframe</h3>
-              <p>URL 解析 → manifest origin 驗證 → consent → 建立 iframe</p>
-            </div>
-          </div>
-          <div id="youtube-primary" className="embed-target" />
-          <details className="secondary-instance">
-            <summary>展開第二個相同 provider 實例</summary>
-            <div id="youtube-secondary" className="embed-target embed-target--secondary" />
-          </details>
-        </article>
-
-        <article className="demo-block">
-          <div className="demo-label">
-            <span>MODE 02</span>
-            <div>
-              <h3>特殊 DIV＋JavaScript SDK</h3>
-              <p>consent → load SDK once → mount → API → revoke/unmount</p>
-            </div>
-          </div>
-          <div id="atlas-widget" className="embed-target" />
-          <p className="demo-disclaimer">
-            Atlas Metrics 是本機模擬服務，不會連線到真實第三方；用來展示 SDK
-            非同步載入、API 呼叫、取消與清理流程。
-          </p>
-        </article>
-
-        <article className="demo-block">
-          <div className="demo-label">
-            <span>MODE 03</span>
-            <div>
-              <h3>真實 Sideqik DIV＋inline bootstrap</h3>
-              <p>html → beforeLoad queue → CloudFront SDK → auto scan</p>
-            </div>
-          </div>
-          <div id="sideqik-promotion" className="embed-target" />
-          <p className="demo-disclaimer">
-            這是你提供的真實 Sideqik promotion。只有同意 Sideqik Promotions
-            後才會建立 promotion DIV 並向 CloudFront 載入 SDK。Sideqik
-            公開文件目前未提供明確的 destroy API；正式上線前應向供應商確認撤回後的完整停止方式，否則建議撤回時重新整理頁面。
-          </p>
-        </article>
-      </section>
-
-      <section className="integration" id="integration">
-        <div className="section-heading section-heading--dark">
-          <div>
-            <p className="kicker">DESIGNER API</p>
-            <h2>設計師只需要建立設定物件</h2>
-          </div>
-          <p>
-            Provider 與 adapter 由開發／隱私管理者核准；內容編輯者只能選擇已核准項目及傳入內容參數。
-          </p>
-        </div>
-
-        <div className="code-grid">
-          <article>
-            <div className="code-title">
-              <span>一般 iframe</span>
-              <code>type: iframe</code>
-            </div>
-            <pre><code>{`await control.create({
-  type: "iframe",
-  url: "https://www.youtube-nocookie.com/embed/…",
-  title: "產品介紹影片",
-  target: "#video-slot"
-});`}</code></pre>
-          </article>
-
-          <article>
-            <div className="code-title">
-              <span>特殊 SDK 元件</span>
-              <code>type: snippet</code>
-            </div>
-            <pre><code>{`await control.create({
-  type: "snippet",
-  providerId: "atlas-metrics-demo",
-  target: "#metric-slot",
-  html: '<div class="metric"></div>',
-  scripts: ["https://vendor.example/sdk.js"],
-  mount({ prepared, options, signal }) {
-    return VendorSDK.mount(
-      prepared.querySelector(".metric"),
-      { ...options, signal }
-    );
-  },
-  options: { metricId: "health" }
-});`}</code></pre>
-          </article>
-
-          <article className="code-wide">
-            <div className="code-title">
-              <span>供應商提供 DIV＋script 時</span>
-              <code>prepare → load → mount → unmount</code>
-            </div>
-            <pre><code>{`await control.create({
-  type: "snippet",
-  providerId: "vendor-provider",
-  target: "#vendor-slot",
-
-  // 供應商給的 DIV 可直接放這裡
-  html: \
-    '<div class="vendor-widget" ' +
-    'data-id="{{contentId}}"></div>',
-
-  // 把 <script src="..."> 改放到陣列
-  scripts: ["https://vendor.example/sdk.js"],
-
-  // 把原本 inline script 放進 mount
-  mount({ prepared, options, signal }) {
-    const div = prepared.querySelector(".vendor-widget");
-    return window.VendorSDK.mount(div, { ...options, signal });
-  },
-
-  unmount({ mountResult }) {
-    return mountResult?.destroy?.();
-  },
-
-  options: { contentId: "product-123" }
-});`}</code></pre>
-          </article>
-        </div>
-      </section>
-
-      <section className="activity-section">
-        <div>
-          <p className="kicker">EVENT STREAM</p>
-          <h2>生命週期紀錄</h2>
-          <p>
-            Demo 會顯示初始化、同意與撤回事件；正式環境可透過
-            <code>onConsentChange</code> 傳送最小化稽核紀錄。
-          </p>
-        </div>
-        <ol id="activity-log" className="activity-log" aria-live="polite" />
-      </section>
-
-      <section className="privacy-note" id="demo-privacy">
-        <p className="kicker">DEMO PRIVACY NOTE</p>
-        <h2>這個示範本身如何處理資料</h2>
-        <p>
-          預設不載入任何受控第三方內容。只有您按下同意後，才會建立對應 iframe
-          或載入模擬 SDK。Cookie 僅保存已允許的 providerId 與 consent version；
-          您可隨時透過頁首設定或每個元件下方的按鈕撤回。
-        </p>
-      </section>
-
-      <footer className="site-footer">
-        <span>MSI Privacy Embed Control / Reference implementation</span>
-        <button type="button" data-open-settings>
-          第三方內容設定
-        </button>
-      </footer>
+        <footer className="manual-footer">
+          <span>MSI Privacy Embed Control · Internal usage guide</span>
+          <a href="#top">回到頁首 ↑</a>
+        </footer>
+      </div>
 
       <Script type="module" src="/demo/demo.js" strategy="afterInteractive" />
     </main>

@@ -1,10 +1,11 @@
-import { MSIThirdPartyEmbedControl } from "/plugin/msi-third-party-embed.js";
+import { MSIThirdPartyEmbedControl } from "https://storage-asset.msi.com/event/msi-third-party-embed/plugin/msi-third-party-embed.min.js";
 
 const activityLog = document.querySelector("#activity-log");
 const consentList = document.querySelector("#consent-list");
 const cookieSize = document.querySelector("#cookie-size");
 const manifestState = document.querySelector("#manifest-state");
 const settingsButtons = document.querySelectorAll("[data-open-settings]");
+const copyButtons = document.querySelectorAll("[data-copy-target]");
 
 function addLog(message, tone = "neutral") {
   const item = document.createElement("li");
@@ -25,12 +26,14 @@ function addLog(message, tone = "neutral") {
 }
 
 const control = new MSIThirdPartyEmbedControl({
+  locale: "auto",
   manifestUrl: "/third-party-providers.json",
+  translationsUrl: "/plugin/translations.json",
   cookieName: "msi_thirdPartyCookieControl",
   cookieMaxAgeDays: 180,
   onConsentChange(detail) {
     addLog(
-      `${detail.providerId}：${detail.action === "granted" ? "已允許" : "已撤回"}`,
+      `${detail.providerId}：${detail.action === "granted" ? "已允許" : "已撤回"}${detail.willReload ? "；頁面即將重新整理" : ""}`,
       detail.action === "granted" ? "success" : "warning",
     );
   },
@@ -70,79 +73,86 @@ async function boot() {
 
     await Promise.all([
       control.create({
-        id: "youtube-primary",
+        id: "youku-player",
         type: "iframe",
-        url: "https://www.youtube-nocookie.com/embed/jNQXAC9IVRw?rel=0",
-        title: "YouTube 嵌入影片示範",
-        target: "#youtube-primary",
-        allow: "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share",
-      }),
-      control.create({
-        id: "youtube-secondary",
-        type: "iframe",
-        url: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?rel=0",
-        title: "第二個 YouTube 嵌入影片示範",
-        target: "#youtube-secondary",
-        allow: "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share",
-      }),
-      control.create({
-        id: "atlas-widget",
-        type: "snippet",
-        providerId: "atlas-metrics-demo",
-        target: "#atlas-widget",
-        html: `<div class="atlas-sdk-slot" data-metric-id="{{metricId}}"></div>`,
-        scripts: ["/demo/mock-atlas-sdk.js"],
-        options: {
-          metricId: "privacy-lifecycle",
-          metricLabel: "第三方 SDK 生命週期健康指數",
-          values: [58, 64, 61, 75, 73, 84, 92],
-        },
-        mount({ prepared, options, signal }) {
-          const sdkSlot = prepared.querySelector(".atlas-sdk-slot");
-          return window.AtlasMetricsDemo.mount(sdkSlot, options, signal);
-        },
-        unmount({ mountResult }) {
-          window.AtlasMetricsDemo?.unmount(mountResult);
-        },
+        providerId: "youku-video",
+        url: "https://player.youku.com/embed/XMzg0MTE2NjAxNg==",
+        title: "YOUKU 嵌入影片示範",
+        target: "#demo-0",
+        allow: "autoplay; encrypted-media; fullscreen; picture-in-picture",
       }),
       control.create({
         id: "sideqik-promotion",
         type: "snippet",
         providerId: "sideqik-promotions",
-        target: "#sideqik-promotion",
+        target: "#demo-1",
         html: `
-          <div
-            class="sideqik-promotion"
-            data-token="de9Cjo6b"
-            data-promotion-url="https://sdqk.me/p/the-desk-my-stage-aug-2026_hq-de9Cjo6b">
+          <div class="sideqik-promotion" data-token="de9Cjo6b"
+            data-promotion-url="https://sdqk.me/p/the-desk-my-stage-aug-2026_hq-de9Cjo6b"></div>
+        `,
+      }),
+      control.create({
+        id: "gleam-giveaway",
+        type: "snippet",
+        providerId: "gleam-competitions",
+        target: "#demo-2",
+        html: `
+          <div class="giveaway__embed-placeholder">
+            <a class="e-widget generic-loader"
+              href="https://gleam.io/GcEwF/excellence-refined-giveaway"
+              rel="nofollow">
+              Excellence Refined Giveaway
+            </a>
           </div>
         `,
-        beforeLoad() {
-          window.sideqik =
-            window.sideqik ||
-            function sideqikQueue() {
-              window.sideqik.q = window.sideqik.q || [];
-              window.sideqik.q.push(arguments);
-            };
-        },
-        scripts: [
-          {
-            src: "https://d1hrk5gt3yn7pi.cloudfront.net/api/sideqik-api-1.4.js#62178a3cc9c3400046f5ca24",
-            attributes: {
-              id: "sideqik-sdk",
-            },
-          },
-        ],
-        unmount({ prepared }) {
-          prepared
-            ?.querySelectorAll("iframe, .sideqik-promotion")
-            .forEach((element) => element.remove());
-        },
+      }),
+      control.create({
+        id: "instagram-post",
+        type: "snippet",
+        providerId: "instagram-embeds",
+        target: "#demo-3",
+        html: `
+          <blockquote class="instagram-media"
+            data-instgrm-permalink="https://www.instagram.com/p/Db3Eif_ASSQ/"
+            data-instgrm-version="14">
+          </blockquote>
+        `,
+      }),
+      control.create({
+        id: "facebook-post",
+        type: "snippet",
+        providerId: "facebook-embeds",
+        target: "#demo-4",
+        html: `
+          <div class="fb-post"
+            data-href="https://www.facebook.com/story.php?story_fbid=1016192431171299&amp;id=100083416537348"
+            data-width="500"
+            data-show-text="true">
+          </div>
+        `,
       }),
     ]);
 
     settingsButtons.forEach((button) => {
       button.addEventListener("click", () => control.openSettings());
+    });
+
+    copyButtons.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const target = document.getElementById(button.dataset.copyTarget);
+        if (!target) return;
+        try {
+          await navigator.clipboard.writeText(target.textContent ?? "");
+          button.textContent = "已複製";
+          button.dataset.copied = "true";
+          window.setTimeout(() => {
+            button.textContent = "複製";
+            delete button.dataset.copied;
+          }, 1600);
+        } catch {
+          addLog("無法存取剪貼簿，請手動選取程式碼", "warning");
+        }
+      });
     });
 
     document.querySelector("#revoke-all").addEventListener("click", async () => {
