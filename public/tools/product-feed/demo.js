@@ -4,6 +4,10 @@ import {
   MSIProductFeedError,
   toPlainText,
 } from "./msi-product-feed.js";
+import {
+  PRODUCT_FEED_DEMO_DEFAULT_LOCALE,
+  PRODUCT_FEED_DEMO_MESSAGES,
+} from "./i18n.js";
 
 const PRODUCT_CARD_TEMPLATE = `<div class="slider__Laptops-box">
   <div class="slider__Laptops-item">
@@ -11,10 +15,11 @@ const PRODUCT_CARD_TEMPLATE = `<div class="slider__Laptops-box">
     <span class="product-label">{label}</span>
     <h4>{title}</h4>
     <p>{subname}</p>
-    <a href="{link}" target="_blank"><span>Learn More</span></a>
+    <a href="{link}" target="_blank"><span data-feed-i18n="product.learnMore">__LEARN_MORE__</span></a>
   </div>
 </div>`;
 
+const demoSection = document.querySelector("#live-demo");
 const form = document.querySelector("#product-feed-controls");
 const status = document.querySelector("#product-feed-status");
 const log = document.querySelector("#product-feed-log");
@@ -25,21 +30,69 @@ const tagCount = document.querySelector("#product-feed-tag-count");
 const selectAllButton = document.querySelector("#product-feed-select-all");
 const clearTagsButton = document.querySelector("#product-feed-clear-tags");
 const renderButton = document.querySelector("#product-feed-render");
+const localeButtons = document.querySelectorAll("[data-feed-locale]");
 let activeFeed = null;
 let tagRequest = null;
+let currentLocale = PRODUCT_FEED_DEMO_DEFAULT_LOCALE;
 
-function appendLog(message, state = "") {
+function translate(key, variables = {}) {
+  const messages = PRODUCT_FEED_DEMO_MESSAGES[currentLocale]
+    ?? PRODUCT_FEED_DEMO_MESSAGES[PRODUCT_FEED_DEMO_DEFAULT_LOCALE];
+  const fallback = PRODUCT_FEED_DEMO_MESSAGES[PRODUCT_FEED_DEMO_DEFAULT_LOCALE];
+  const template = messages[key] ?? fallback[key] ?? key;
+
+  return template.replace(/\{([A-Za-z][A-Za-z0-9]*)\}/g, (_, name) =>
+    String(variables[name] ?? `{${name}}`)
+  );
+}
+
+function setMessage(element, key, variables = {}) {
+  if (!element) return;
+  element.dataset.feedMessage = key;
+  element.dataset.feedMessageVariables = JSON.stringify(variables);
+  element.textContent = translate(key, variables);
+}
+
+function refreshMessage(element) {
+  const key = element.dataset.feedMessage;
+  if (!key) return;
+  let variables = {};
+  try {
+    variables = JSON.parse(element.dataset.feedMessageVariables || "{}");
+  } catch {
+    variables = {};
+  }
+  element.textContent = translate(key, variables);
+}
+
+function translateDemo() {
+  for (const element of demoSection?.querySelectorAll("[data-feed-i18n]") ?? []) {
+    element.textContent = translate(element.dataset.feedI18n);
+  }
+  for (const element of demoSection?.querySelectorAll("[data-feed-i18n-aria-label]") ?? []) {
+    element.setAttribute("aria-label", translate(element.dataset.feedI18nAriaLabel));
+  }
+  for (const element of demoSection?.querySelectorAll("[data-feed-message]") ?? []) {
+    refreshMessage(element);
+  }
+  for (const button of localeButtons) {
+    button.setAttribute("aria-pressed", String(button.dataset.feedLocale === currentLocale));
+  }
+  if (demoSection) demoSection.lang = currentLocale === "en" ? "en" : "zh-Hant";
+  updateTagArray();
+}
+
+function appendLog(key, variables = {}, state = "") {
   if (!log) return;
   const item = document.createElement("li");
-  item.textContent = message;
+  setMessage(item, key, variables);
   if (state) item.dataset.state = state;
   log.append(item);
 }
 
-function setStatus(message, state = "") {
-  if (!status) return;
-  status.textContent = message;
-  status.dataset.state = state;
+function setStatus(key, variables = {}, state = "") {
+  setMessage(status, key, variables);
+  if (status) status.dataset.state = state;
 }
 
 function selectedTagTitles() {
@@ -51,7 +104,7 @@ function selectedTagTitles() {
 function updateTagArray() {
   const selected = selectedTagTitles();
   if (tagArray) tagArray.textContent = JSON.stringify(selected, null, 2);
-  if (tagCount) tagCount.textContent = `已選擇 ${selected.length} 項`;
+  if (tagCount) tagCount.textContent = translate("array.selected", { count: selected.length });
   if (renderButton) renderButton.disabled = selected.length === 0;
 }
 
@@ -61,13 +114,13 @@ function setTagButtonsEnabled(enabled) {
   if (!enabled && renderButton) renderButton.disabled = true;
 }
 
-function resetTagOptions(message = "請重新取得分類 Title。") {
+function resetTagOptions(key = "category.reload", variables = {}) {
   tagRequest?.abort();
   tagRequest = null;
   tagOptions?.replaceChildren();
   if (tagOptions) {
     const empty = document.createElement("p");
-    empty.textContent = message;
+    setMessage(empty, key, variables);
     tagOptions.append(empty);
   }
   setTagButtonsEnabled(false);
@@ -116,10 +169,7 @@ async function requestTagTitles(country, productLine, signal) {
   try {
     payload = await response.json();
   } catch {
-    throw new MSIProductFeedError(
-      "INVALID_RESPONSE",
-      "Product API Proxy 沒有回傳有效 JSON。",
-    );
+    throw new MSIProductFeedError("INVALID_RESPONSE", "Invalid proxy JSON response.");
   }
 
   if (!response.ok) {
@@ -148,7 +198,7 @@ async function requestTagTitles(country, productLine, signal) {
   if (tags.length === 0) {
     throw new MSIProductFeedError(
       "NO_TAGS",
-      `找不到 ${country}.msi.com 的 Product Line「${productLine}」或分類資料。`,
+      "No category tags were found.",
       { country, productLine },
     );
   }
@@ -156,10 +206,36 @@ async function requestTagTitles(country, productLine, signal) {
   return tags;
 }
 
-function getErrorMessage(error) {
-  return error instanceof MSIProductFeedError
-    ? `${error.code}: ${error.message}`
-    : error?.message || "未知錯誤";
+function getErrorDescriptor(error) {
+  if (error instanceof MSIProductFeedError) {
+    if (error.code === "INVALID_RESPONSE") {
+      return { key: "error.invalidResponse", variables: {} };
+    }
+    if (error.code === "NO_TAGS") {
+      return { key: "error.noTags", variables: error.details };
+    }
+    return {
+      key: "error.api",
+      variables: { code: error.code, message: error.message },
+    };
+  }
+
+  return {
+    key: "error.api",
+    variables: {
+      code: "ERROR",
+      message: error?.message || translate("error.unknown"),
+    },
+  };
+}
+
+for (const button of localeButtons) {
+  button.addEventListener("click", () => {
+    const locale = button.dataset.feedLocale;
+    if (!PRODUCT_FEED_DEMO_MESSAGES[locale]) return;
+    currentLocale = locale;
+    translateDemo();
+  });
 }
 
 for (const button of document.querySelectorAll("[data-feed-copy]")) {
@@ -167,10 +243,9 @@ for (const button of document.querySelectorAll("[data-feed-copy]")) {
     const target = document.getElementById(button.dataset.feedCopy);
     if (!target) return;
     await navigator.clipboard.writeText(target.textContent ?? "");
-    const original = button.textContent;
-    button.textContent = "已複製";
+    button.textContent = translate("copy.done");
     window.setTimeout(() => {
-      button.textContent = original;
+      button.textContent = translate(button.dataset.feedI18n);
     }, 1400);
   });
 }
@@ -178,7 +253,7 @@ for (const button of document.querySelectorAll("[data-feed-copy]")) {
 for (const field of form?.querySelectorAll('[name="country"], [name="productLine"]') ?? []) {
   field.addEventListener("change", () => {
     resetTagOptions();
-    setStatus("設定已變更，請重新取得分類", "");
+    setStatus("status.settingsChanged");
   });
 }
 
@@ -202,22 +277,22 @@ form?.addEventListener("submit", async (event) => {
   const country = String(values.get("country") ?? "uk").trim().toLowerCase();
   const productLine = String(values.get("productLine") ?? "nb").trim().toLowerCase();
 
-  resetTagOptions("正在讀取 API…");
+  resetTagOptions("category.loading");
   const currentRequest = new AbortController();
   tagRequest = currentRequest;
   tagSubmitButton?.setAttribute("disabled", "");
-  setStatus("正在取得分類 Title…", "loading");
+  setStatus("status.loadingTags", {}, "loading");
 
   try {
     const tags = await requestTagTitles(country, productLine, currentRequest.signal);
     if (tagRequest !== currentRequest) return;
     renderTagOptions(tags);
-    setStatus(`已取得 ${tagOptions?.childElementCount ?? 0} 個分類 Title`, "ready");
+    setStatus("status.loadedTags", { count: tagOptions?.childElementCount ?? 0 }, "ready");
   } catch (error) {
     if (currentRequest.signal.aborted) return;
-    const message = getErrorMessage(error);
-    resetTagOptions(`無法取得分類：${message}`);
-    setStatus(message, "error");
+    const descriptor = getErrorDescriptor(error);
+    resetTagOptions(descriptor.key, descriptor.variables);
+    setStatus(descriptor.key, descriptor.variables, "error");
   } finally {
     if (tagRequest === currentRequest) tagRequest = null;
     tagSubmitButton?.removeAttribute("disabled");
@@ -232,8 +307,8 @@ renderButton?.addEventListener("click", async () => {
   activeFeed?.destroy();
   log?.replaceChildren();
   renderButton.disabled = true;
-  setStatus("正在載入所選產品…", "loading");
-  appendLog("以勾選的 tagTitles 呼叫 Product API", "loading");
+  setStatus("status.loadingProducts", {}, "loading");
+  appendLog("log.loadProducts", {}, "loading");
 
   activeFeed = new MSIProductFeed({
     productLine: String(values.get("productLine") ?? "nb").trim().toLowerCase(),
@@ -242,11 +317,11 @@ renderButton?.addEventListener("click", async () => {
     sort: "default",
     pageSize: 99,
     target: "#product-feed-demo",
-    html: PRODUCT_CARD_TEMPLATE,
+    html: PRODUCT_CARD_TEMPLATE.replace("__LEARN_MORE__", translate("product.learnMore")),
     proxyUrl: "/api/tools/product-feed",
     before({ target, products }) {
-      setStatus("正在替換原始產品…", "loading");
-      appendLog(`before：解除舊 Slider 狀態，準備 ${products.length} 筆產品`);
+      setStatus("status.replacing", {}, "loading");
+      appendLog("log.before", { count: products.length });
       target.classList.remove("is-slider-ready");
 
       if (globalThis.jQuery && globalThis.jQuery(target).hasClass("slick-initialized")) {
@@ -255,27 +330,33 @@ renderButton?.addEventListener("click", async () => {
     },
     after({ target, products, error, failedPhase }) {
       if (error) {
-        appendLog(`after：${failedPhase} 失敗，保留頁面自行恢復的機會`, "error");
+        appendLog("log.afterError", { phase: failedPhase }, "error");
         return;
       }
 
       target.classList.add("is-slider-ready");
-      appendLog(`after：新 Slider 已就緒，共 ${products.length} 筆產品`, "ready");
+      appendLog("log.afterReady", { count: products.length }, "ready");
     },
   });
 
   try {
     const result = await activeFeed.init();
-    setStatus(`完成：顯示 ${result.products.length} 筆產品`, "ready");
-    appendLog(`精確比對 ${result.matchedTags.length} 個 Tag，IDs：${result.ids.join(", ")}`);
-    appendLog("Product API 與 HTML 模板渲染完成", "ready");
+    setStatus("status.complete", { count: result.products.length }, "ready");
+    appendLog("log.matched", {
+      count: result.matchedTags.length,
+      ids: result.ids.join(", "),
+    });
+    appendLog("log.complete", {}, "ready");
   } catch (error) {
-    const message = getErrorMessage(error);
-    setStatus(message, "error");
-    appendLog(`停止更新：${message}`, "error");
+    const descriptor = getErrorDescriptor(error);
+    const message = translate(descriptor.key, descriptor.variables);
+    setStatus(descriptor.key, descriptor.variables, "error");
+    appendLog("log.stopped", { message }, "error");
   } finally {
     renderButton.disabled = selectedTagTitles().length === 0;
   }
 });
 
+setStatus("status.initial");
+translateDemo();
 tagSubmitButton?.removeAttribute("disabled");

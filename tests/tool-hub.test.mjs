@@ -24,10 +24,11 @@ test("renders the documentation homepage from a central tool registry", async ()
 test("keeps each tool manual in its own route folder", async () => {
   const manualUrl = new URL("app/tools/third-party-embed/page.tsx", root);
   const productFeedUrl = new URL("app/tools/product-feed/page.tsx", root);
-  const [manual, productFeed, productFeedDemo] = await Promise.all([
+  const [manual, productFeed, productFeedDemo, productFeedI18n] = await Promise.all([
     text("app/tools/third-party-embed/page.tsx"),
     text("app/tools/product-feed/page.tsx"),
     text("public/tools/product-feed/demo.js"),
+    text("public/tools/product-feed/i18n.js"),
   ]);
 
   await access(manualUrl);
@@ -41,12 +42,19 @@ test("keeps each tool manual in its own route folder", async () => {
   assert.match(productFeed, /id="product-feed-tag-array"/);
   assert.match(productFeed, /list="product-feed-country-list"/);
   assert.match(productFeed, /list="product-feed-line-list"/);
+  assert.match(productFeed, /data-feed-locale="zh-TW"/);
+  assert.match(productFeed, /data-feed-locale="en"/);
   assert.doesNotMatch(productFeed, /name="tagTitles"/);
   assert.doesNotMatch(productFeed, /name="sort"/);
   assert.doesNotMatch(productFeed, /name="html"/);
   assert.match(productFeedDemo, /flattenFilterTags/);
   assert.match(productFeedDemo, /JSON\.stringify\(selected, null, 2\)/);
   assert.match(productFeedDemo, /"NO_TAGS"/);
+  assert.match(productFeedDemo, /PRODUCT_FEED_DEMO_MESSAGES/);
+  assert.match(productFeedDemo, /translateDemo/);
+  assert.match(productFeedI18n, /"zh-TW"/);
+  assert.match(productFeedI18n, /\ben:\s*Object\.freeze/);
+  assert.match(productFeedI18n, /"status\.complete"/);
 });
 
 test("uses the shared MSI Storage logo on the hub and tool manuals", async () => {

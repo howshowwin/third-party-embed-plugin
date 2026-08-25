@@ -13,6 +13,10 @@ import {
   resolveTagSelection,
   validateProductTemplate,
 } from "../public/tools/product-feed/msi-product-feed.js";
+import {
+  PRODUCT_FEED_DEMO_DEFAULT_LOCALE,
+  PRODUCT_FEED_DEMO_MESSAGES,
+} from "../public/tools/product-feed/i18n.js";
 
 const filterTagList = [
   {
@@ -34,6 +38,30 @@ const filterTagList = [
     },
   },
 ];
+
+test("keeps Product Feed demo locale keys and placeholders aligned", () => {
+  assert.equal(PRODUCT_FEED_DEMO_DEFAULT_LOCALE, "zh-TW");
+
+  const chinese = PRODUCT_FEED_DEMO_MESSAGES["zh-TW"];
+  const english = PRODUCT_FEED_DEMO_MESSAGES.en;
+  const chineseKeys = Object.keys(chinese).sort();
+  const englishKeys = Object.keys(english).sort();
+
+  assert.deepEqual(englishKeys, chineseKeys);
+
+  const placeholders = (message) =>
+    [...message.matchAll(/\{([a-zA-Z0-9_]+)\}/g)]
+      .map((match) => match[1])
+      .sort();
+
+  for (const key of chineseKeys) {
+    assert.deepEqual(
+      placeholders(english[key]),
+      placeholders(chinese[key]),
+      `Translation placeholders differ for ${key}`,
+    );
+  }
+});
 
 function createApiFetcher(requests = []) {
   return async (url) => {

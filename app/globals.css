@@ -1766,6 +1766,44 @@ pre {
   padding-bottom: 0 !important;
 }
 
+.feed-demo-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.feed-demo-heading .feed-section-title {
+  margin-bottom: 27px;
+}
+
+.feed-locale-switch {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.feed-locale-switch button {
+  min-height: 34px;
+  padding: 0 12px;
+  color: #667085;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.feed-locale-switch button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--navy);
+}
+
 .feed-demo-controls {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2416,6 +2454,17 @@ pre {
   .feed-demo-controls__actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .feed-demo-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .feed-locale-switch {
+    align-self: flex-start;
+    margin-bottom: 20px;
   }
 
   .feed-doc__footer {

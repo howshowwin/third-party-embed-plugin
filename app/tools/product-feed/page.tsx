@@ -240,15 +240,26 @@ export default function ProductFeedGuide() {
           </section>
 
           <section id="live-demo" className="feed-demo-section">
-            <div className="feed-section-title"><span>07</span><div><p>LIVE API</p><h2>互動 Demo</h2></div></div>
-            <p className="feed-lead">
+            <div className="feed-demo-heading">
+              <div className="feed-section-title"><span>07</span><div><p>LIVE API</p><h2 data-feed-i18n="demo.title">互動 Demo</h2></div></div>
+              <div
+                className="feed-locale-switch"
+                role="group"
+                aria-label="Demo 語言"
+                data-feed-i18n-aria-label="language.label"
+              >
+                <button type="button" data-feed-locale="zh-TW" aria-pressed="true">中文</button>
+                <button type="button" data-feed-locale="en" aria-pressed="false">English</button>
+              </div>
+            </div>
+            <p className="feed-lead" data-feed-i18n="demo.lead">
               選擇國家與產品線，先取得 API 提供的所有分類 Title。勾選需要的分類後，
               上方會產生可複製的 <code>tagTitles</code> 陣列，再以相同選擇載入產品 Demo。
             </p>
 
             <form className="feed-demo-controls feed-demo-controls--selector" id="product-feed-controls">
               <label>
-                <span>Country</span>
+                <span data-feed-i18n="country.label">國家</span>
                 <input
                   name="country"
                   defaultValue="uk"
@@ -262,10 +273,10 @@ export default function ProductFeedGuide() {
                     <option value={code} key={code}>{label}</option>
                   ))}
                 </datalist>
-                <small>可自行輸入國碼；清單僅提供常用 MSI Local 建議</small>
+                <small data-feed-i18n="country.help">可自行輸入國碼；清單僅提供常用 MSI Local 建議</small>
               </label>
               <label>
-                <span>Product Line</span>
+                <span data-feed-i18n="productLine.label">產品線</span>
                 <input
                   name="productLine"
                   defaultValue="nb"
@@ -279,10 +290,10 @@ export default function ProductFeedGuide() {
                     <option value={line} key={line} />
                   ))}
                 </datalist>
-                <small>可自行輸入 Product Line；清單只列常用項目</small>
+                <small data-feed-i18n="productLine.help">可自行輸入 Product Line；清單只列常用項目</small>
               </label>
               <div className="feed-demo-controls__actions">
-                <button type="submit" id="product-feed-tag-submit" disabled>取得分類 Title</button>
+                <button type="submit" id="product-feed-tag-submit" data-feed-i18n="categories.fetch" disabled>取得分類 Title</button>
                 <span id="product-feed-status" aria-live="polite">請先取得分類</span>
               </div>
             </form>
@@ -290,34 +301,34 @@ export default function ProductFeedGuide() {
             <section className="feed-tag-builder" aria-labelledby="feed-tag-builder-title">
               <div className="feed-tag-preview">
                 <div>
-                  <span>TAG TITLES ARRAY</span>
+                  <span data-feed-i18n="array.label">TAG TITLES 陣列</span>
                   <strong id="product-feed-tag-count">已選擇 0 項</strong>
                 </div>
                 <pre><code id="product-feed-tag-array">[]</code></pre>
-                <button type="button" data-feed-copy="product-feed-tag-array">複製陣列</button>
+                <button type="button" data-feed-copy="product-feed-tag-array" data-feed-i18n="array.copy">複製陣列</button>
               </div>
 
               <fieldset className="feed-tag-fieldset">
-                <legend id="feed-tag-builder-title">分類 Title</legend>
+                <legend id="feed-tag-builder-title" data-feed-i18n="category.legend">分類 Title</legend>
                 <div className="feed-tag-options" id="product-feed-tag-options">
-                  <p>選擇國家與產品線，再按「取得分類 Title」。</p>
+                  <p data-feed-i18n="category.initial">輸入國家與產品線，再按「取得分類 Title」。</p>
                 </div>
               </fieldset>
 
               <div className="feed-tag-actions">
-                <button type="button" id="product-feed-select-all" disabled>全選</button>
-                <button type="button" id="product-feed-clear-tags" disabled>清除</button>
-                <button type="button" id="product-feed-render" disabled>載入所選產品 Demo</button>
+                <button type="button" id="product-feed-select-all" data-feed-i18n="actions.selectAll" disabled>全選</button>
+                <button type="button" id="product-feed-clear-tags" data-feed-i18n="actions.clear" disabled>清除</button>
+                <button type="button" id="product-feed-render" data-feed-i18n="actions.load" disabled>載入所選產品 Demo</button>
               </div>
             </section>
 
             <div className="feed-demo-runtime">
               <div>
-                <span>RENDER TARGET</span>
-                <strong>API 成功後才替換下方內容</strong>
+                <span data-feed-i18n="runtime.label">渲染目標</span>
+                <strong data-feed-i18n="runtime.description">API 成功後才替換下方內容</strong>
               </div>
               <ol id="product-feed-log" aria-live="polite">
-                <li>目前為原始靜態內容</li>
+                <li data-feed-i18n="runtime.initial">目前為原始靜態內容</li>
               </ol>
             </div>
 
@@ -328,11 +339,11 @@ export default function ProductFeedGuide() {
             >
               <div className="slider__Laptops-box slider__Laptops-box--static">
                 <div className="slider__Laptops-item">
-                  <div className="feed-static-art" aria-hidden="true">STATIC</div>
-                  <span className="product-label">CURRENT PAGE</span>
-                  <h4>原本正在運作的靜態產品內容</h4>
-                  <p>資料載入失敗時，這個區塊不會被清除或解除初始化。</p>
-                  <a href="#live-demo"><span>Waiting for API</span></a>
+                  <div className="feed-static-art" aria-hidden="true" data-feed-i18n="static.badge">靜態內容</div>
+                  <span className="product-label" data-feed-i18n="static.current">目前頁面</span>
+                  <h4 data-feed-i18n="static.title">原本正在運作的靜態產品內容</h4>
+                  <p data-feed-i18n="static.description">資料載入失敗時，這個區塊不會被清除或解除初始化。</p>
+                  <a href="#live-demo"><span data-feed-i18n="static.waiting">等待 API</span></a>
                 </div>
               </div>
             </div>
