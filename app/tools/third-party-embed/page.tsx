@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
+import { MSI_LOGO_URL } from "../../../lib/brand";
 
 export const metadata: Metadata = {
   title: "Third-party Embed Control｜MSI Web Tools",
@@ -138,7 +139,7 @@ export default function ThirdPartyEmbedGuide() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="brand-logo"
-              src="/msi-logo.png"
+              src={MSI_LOGO_URL}
               alt="MSI"
               width={155}
               height={65}

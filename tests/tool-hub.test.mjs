@@ -29,3 +29,20 @@ test("keeps each tool manual in its own route folder", async () => {
   assert.match(manual, /href="\/"/);
   assert.match(manual, /src="\/tools\/third-party-embed\/demo\.js"/);
 });
+
+test("uses the shared MSI Storage logo on the hub and tool manuals", async () => {
+  const [homepage, manual, brand] = await Promise.all([
+    text("app/page.tsx"),
+    text("app/tools/third-party-embed/page.tsx"),
+    text("lib/brand.ts"),
+  ]);
+
+  assert.match(
+    brand,
+    /https:\/\/storage-asset\.msi\.com\/global\/picture\/image\/icons\/logo\.png/,
+  );
+  assert.match(homepage, /MSI_LOGO_URL/);
+  assert.match(manual, /MSI_LOGO_URL/);
+  assert.doesNotMatch(homepage, /\/msi-logo\.png/);
+  assert.doesNotMatch(manual, /\/msi-logo\.png/);
+});

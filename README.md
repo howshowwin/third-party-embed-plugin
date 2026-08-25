@@ -21,7 +21,7 @@
 - `app/tools/third-party-embed/page.tsx`：Third-party Embed Control 的完整使用手冊與 Demo 容器。
 - `app/globals.css`：文件中心與各工具 Demo 網站樣式；由 Next.js 建置並由 Vercel 提供。
 - `public/tools/third-party-embed/demo.js`：目前工具的 Demo 互動程式；只從 MSI Storage 匯入正式插件 JS。
-- `public/msi-logo.png`、`public/og-guide.png`：Demo 網站使用的本機圖片。
+- `public/og-guide.png`：Third-party Embed Control 文件使用的社群預覽圖片。
 - `public/plugin/translations.json`：Demo 使用的本機翻譯檔。
 - `public/third-party-providers.json`：Demo 使用的本機 Provider manifest。
 - `public/plugin/msi-third-party-embed.js`：可獨立使用的 ESM 插件。

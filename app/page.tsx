@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { MSI_LOGO_URL } from "../lib/brand";
 import { getToolHref, toolDocuments } from "../lib/tools";
 
 export default function ToolsHub() {
@@ -8,7 +8,8 @@ export default function ToolsHub() {
       <header className="tools-hub__header">
         <div className="tools-hub__brand">
           <span className="tools-hub__logo">
-            <Image src="/msi-logo.png" alt="MSI" width={155} height={65} priority />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={MSI_LOGO_URL} alt="MSI" width={155} height={65} />
           </span>
           <span>
             <strong>MSI Web Tools</strong>
