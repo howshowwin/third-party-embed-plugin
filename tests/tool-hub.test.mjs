@@ -17,23 +17,32 @@ test("renders the documentation homepage from a central tool registry", async ()
   assert.match(homepage, /toolDocuments\.map/);
   assert.match(homepage, /getToolHref/);
   assert.match(registry, /slug:\s*"third-party-embed"/);
+  assert.match(registry, /slug:\s*"product-feed"/);
   assert.match(registry, /`\/tools\/\$\{tool\.slug\}`/);
 });
 
 test("keeps each tool manual in its own route folder", async () => {
   const manualUrl = new URL("app/tools/third-party-embed/page.tsx", root);
-  const manual = await text("app/tools/third-party-embed/page.tsx");
+  const productFeedUrl = new URL("app/tools/product-feed/page.tsx", root);
+  const [manual, productFeed] = await Promise.all([
+    text("app/tools/third-party-embed/page.tsx"),
+    text("app/tools/product-feed/page.tsx"),
+  ]);
 
   await access(manualUrl);
+  await access(productFeedUrl);
   assert.match(manual, /ThirdPartyEmbedGuide/);
   assert.match(manual, /href="\/"/);
   assert.match(manual, /src="\/tools\/third-party-embed\/demo\.js"/);
+  assert.match(productFeed, /MSI Product Feed/);
+  assert.match(productFeed, /src="\/tools\/product-feed\/demo\.js"/);
 });
 
 test("uses the shared MSI Storage logo on the hub and tool manuals", async () => {
-  const [homepage, manual, brand] = await Promise.all([
+  const [homepage, manual, productFeed, brand] = await Promise.all([
     text("app/page.tsx"),
     text("app/tools/third-party-embed/page.tsx"),
+    text("app/tools/product-feed/page.tsx"),
     text("lib/brand.ts"),
   ]);
 
@@ -43,8 +52,10 @@ test("uses the shared MSI Storage logo on the hub and tool manuals", async () =>
   );
   assert.match(homepage, /MSI_LOGO_URL/);
   assert.match(manual, /MSI_LOGO_URL/);
+  assert.match(productFeed, /MSI_LOGO_URL/);
   assert.doesNotMatch(homepage, /\/msi-logo\.png/);
   assert.doesNotMatch(manual, /\/msi-logo\.png/);
+  assert.doesNotMatch(productFeed, /\/msi-logo\.png/);
 });
 
 test("keeps all explicitly sized interface text at 12px or larger", async () => {

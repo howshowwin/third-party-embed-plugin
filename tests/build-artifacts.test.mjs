@@ -13,6 +13,14 @@ const paths = {
     "../dist/client/plugin/msi-third-party-embed.min.css",
     import.meta.url,
   ),
+  productFeedSource: new URL(
+    "../public/tools/product-feed/msi-product-feed.js",
+    import.meta.url,
+  ),
+  productFeedMin: new URL(
+    "../dist/client/tools/product-feed/msi-product-feed.min.js",
+    import.meta.url,
+  ),
 };
 
 test("builds upload-ready minified plugin assets", async () => {
@@ -37,4 +45,21 @@ test("builds upload-ready minified plugin assets", async () => {
     `${paths.minJs.href}?test=${process.pid}-${Date.now()}`
   );
   assert.equal(typeof pluginModule.MSIThirdPartyEmbedControl, "function");
+});
+
+test("builds an upload-ready Product Feed module", async () => {
+  const [source, minified] = await Promise.all([
+    stat(paths.productFeedSource),
+    stat(paths.productFeedMin),
+  ]);
+
+  assert.ok(minified.size > 0 && minified.size < source.size);
+
+  const javascript = await readFile(paths.productFeedMin, "utf8");
+  assert.match(javascript, /MSIProductFeed/);
+
+  const productFeedModule = await import(
+    `${paths.productFeedMin.href}?test=${process.pid}-${Date.now()}`
+  );
+  assert.equal(typeof productFeedModule.MSIProductFeed, "function");
 });

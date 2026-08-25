@@ -1,6 +1,6 @@
-# MSI Privacy Embed Control
+# MSI Web Tools
 
-一個零依賴的瀏覽器 JavaScript 插件，用來在使用者同意前封鎖第三方 iframe 與 JavaScript SDK，並在同意或撤回時同步管理同一 provider 的所有嵌入實例。
+MSI 內部前端工具與互動式使用手冊。目前包含第三方嵌入同意控制，以及將既有產品版位串接 MSI Product API 的 Product Feed 工具。
 
 ## 安全前提
 
@@ -19,8 +19,11 @@
 - `app/page.tsx`：工具文件首頁，從中央清單自動顯示所有 Tools。
 - `lib/tools.ts`：工具文件中央清單；首頁名稱、說明、版本與路由都從這裡讀取。
 - `app/tools/third-party-embed/page.tsx`：Third-party Embed Control 的完整使用手冊與 Demo 容器。
+- `app/tools/product-feed/page.tsx`：MSI Product Feed 的完整使用手冊與即時 API Demo。
 - `app/globals.css`：文件中心與各工具 Demo 網站樣式；由 Next.js 建置並由 Vercel 提供。
 - `public/tools/third-party-embed/demo.js`：目前工具的 Demo 互動程式；只從 MSI Storage 匯入正式插件 JS。
+- `public/tools/product-feed/msi-product-feed.js`：Product Feed 的零依賴 ESM 主程式。
+- `public/tools/product-feed/demo.js`：Product Feed 文件頁的互動 Demo。
 - `public/og-guide.png`：Third-party Embed Control 文件使用的社群預覽圖片。
 - `public/plugin/translations.json`：Demo 使用的本機翻譯檔。
 - `public/third-party-providers.json`：Demo 使用的本機 Provider manifest。
@@ -96,6 +99,14 @@ npm run build:plugin
 - `dist/client/plugin/msi-third-party-embed.min.css`
 
 這兩個 `.min` 檔可直接上傳至靜態資源伺服器。未壓縮的 JS 與 CSS 仍會保留在相同資料夾，供除錯使用。
+
+Product Feed 可單獨執行：
+
+```bash
+npm run build:product-feed
+```
+
+輸出檔案為 `dist/client/tools/product-feed/msi-product-feed.min.js`。執行 `npm run build:all` 會同時建置網站、第三方嵌入插件與 Product Feed。
 
 ## Provider manifest
 

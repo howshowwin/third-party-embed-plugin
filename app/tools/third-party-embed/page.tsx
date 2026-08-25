@@ -120,8 +120,8 @@ function CodeBlock({
   language?: string;
 }) {
   return (
-    <div className="code-block">
-      <div className="code-toolbar">
+    <div className="feed-code">
+      <div className="feed-code__bar">
         <span>{language}</span>
         <button type="button" data-copy-target={id}>複製</button>
       </div>
@@ -132,72 +132,71 @@ function CodeBlock({
 
 export default function ThirdPartyEmbedGuide() {
   return (
-    <main className="manual-shell" id="top">
-      <aside className="manual-sidebar" aria-label="使用手冊導覽">
-        <Link className="manual-brand" href="/" aria-label="回到所有工具">
-          <span className="brand-logo-wrap">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="brand-logo"
-              src={MSI_LOGO_URL}
-              alt="MSI"
-              width={155}
-              height={65}
-            />
-          </span>
+    <main className="feed-doc embed-doc" id="top">
+      <header className="feed-doc__header">
+        <Link className="feed-doc__brand" href="/" aria-label="回到所有工具">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={MSI_LOGO_URL} alt="MSI" width={155} height={65} />
           <span>
-            <strong>Privacy Embed Control</strong>
-            <small>使用手冊</small>
+            <strong>MSI Web Tools</strong>
+            <small>Privacy Embed</small>
           </span>
         </Link>
-
-        <nav className="manual-nav">
-          <p>開始使用</p>
-          <a href="#overview"><span>01</span>工具概覽</a>
-          <a href="#quick-start"><span>02</span>快速開始</a>
-          <a href="#provider-manifest"><span>03</span>Provider 白名單</a>
-          <p>第三方服務</p>
-          <a href="#youku"><span>04</span>YOUKU 影片</a>
-          <a href="#sideqik"><span>05</span>Sideqik 活動</a>
-          <a href="#gleam"><span>06</span>Gleam 抽獎</a>
-          <a href="#instagram"><span>07</span>Instagram 貼文</a>
-          <a href="#facebook"><span>08</span>Facebook 貼文</a>
-          <a href="#generic-snippet"><span>09</span>HTML / CSS / JS</a>
-          <p>管理與參考</p>
-          <a href="#revoke"><span>10</span>撤回與生命週期</a>
-          <a href="#api-reference"><span>11</span>參數參考</a>
-          <a href="#runtime"><span>12</span>執行狀態</a>
+        <nav aria-label="頁面導覽">
+          <a href="#quick-start">快速開始</a>
+          <a href="#youku">服務範例</a>
+          <a href="#runtime">執行狀態</a>
         </nav>
-
-        <div className="sidebar-footer">
-          <span className="version-badge">v0.1 / Internal</span>
-          <button type="button" data-open-settings>管理第三方同意</button>
+        <div className="embed-header-actions">
+          <Link className="feed-doc__all-tools" href="/">所有工具</Link>
+          <button type="button" data-open-settings>管理同意</button>
         </div>
-      </aside>
+      </header>
 
-      <div className="manual-page">
-        <header className="manual-topbar">
-          <div>
-            <span>MSI Web Platform</span>
-            <b>/</b>
-            <strong>Third-party Embed Guide</strong>
-          </div>
-          <button type="button" data-open-settings>第三方內容設定</button>
-        </header>
+      <section className="feed-hero embed-hero">
+        <div>
+          <p>PRIVACY &amp; COMPLIANCE · v0.1</p>
+          <h1>Third-party<br />Embed Control</h1>
+          <span>
+            在訪客同意前阻止第三方 iframe 與 JavaScript SDK 建立連線，
+            並以核准的 Provider manifest 統一管理載入、同步同意與撤回生命週期。
+          </span>
+        </div>
+        <dl>
+          <div><dt>5</dt><dd>服務範例</dd></div>
+          <div><dt>2</dt><dd>嵌入模式</dd></div>
+          <div><dt>1</dt><dd>同意 Cookie</dd></div>
+        </dl>
+      </section>
 
-        <div className="manual-content">
-          <section className="doc-intro" id="overview">
-            <div className="doc-meta">
-              <span>INTERNAL DOCUMENTATION</span>
-              <span>最後更新：2026-08-25</span>
+      <div className="feed-doc__layout embed-doc__layout">
+        <aside className="feed-toc embed-toc" aria-label="本頁章節">
+          <p>ON THIS PAGE</p>
+          <a href="#overview">工具概覽</a>
+          <a href="#quick-start">快速開始</a>
+          <a href="#provider-manifest">Provider 白名單</a>
+          <a href="#youku">YOUKU 影片</a>
+          <a href="#sideqik">Sideqik 活動</a>
+          <a href="#gleam">Gleam 抽獎</a>
+          <a href="#instagram">Instagram 貼文</a>
+          <a href="#facebook">Facebook 貼文</a>
+          <a href="#generic-snippet">HTML / CSS / JS</a>
+          <a href="#revoke">撤回與生命週期</a>
+          <a href="#api-reference">參數參考</a>
+          <a href="#runtime">執行狀態</a>
+        </aside>
+
+        <article className="feed-doc__content embed-doc__content">
+          <section id="overview">
+            <div className="feed-section-title">
+              <span>01</span>
+              <div><p>OVERVIEW</p><h2>工具概覽</h2></div>
             </div>
-            <h1>第三方嵌入工具<br />使用手冊</h1>
-            <p>
-              本文件提供網站建置與內容維護人員整合第三方 iframe、HTML、CSS
-              與 JavaScript 的標準方式。插件會在訪客同意前阻止第三方連線，並只允許後端與
-              Provider manifest 已核准的服務。
+            <p className="feed-lead">
+              提供網站建置與內容維護人員整合第三方 iframe、HTML、CSS 與 JavaScript 的標準方式。
+              插件只允許後端與 Provider manifest 已核准的服務，且取得訪客同意前不會連線第三方來源。
             </p>
-            <h2>引入主程式</h2>
+            <h3 className="embed-program-title">引入主程式</h3>
             <p>每個使用第三方嵌入工具的頁面先加入以下程式碼，再接續各服務章節的嵌入設定。</p>
             <CodeBlock id="code-main-program" code={mainProgramCode} language="HTML" />
             <div className="doc-callout doc-callout--important">
@@ -498,16 +497,16 @@ export default function ThirdPartyEmbedGuide() {
               </ul>
             </div>
           </section>
-        </div>
-
-        <footer className="manual-footer">
-          <span>MSI Privacy Embed Control · Internal usage guide</span>
-          <nav aria-label="文件頁尾導覽">
-            <Link href="/">所有工具</Link>
-            <a href="#top">回到頁首 ↑</a>
-          </nav>
-        </footer>
+        </article>
       </div>
+
+      <footer className="feed-doc__footer">
+        <span>MSI Privacy Embed Control · Internal usage guide</span>
+        <div>
+          <Link href="/">所有工具</Link>
+          <a href="#top">回到頁首 ↑</a>
+        </div>
+      </footer>
 
       <Script
         type="module"
