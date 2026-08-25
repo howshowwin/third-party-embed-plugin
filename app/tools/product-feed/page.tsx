@@ -228,7 +228,12 @@ export default function ProductFeedGuide() {
             <form className="feed-demo-controls" id="product-feed-controls">
               <label>
                 <span>Country</span>
-                <input name="country" defaultValue="uk" pattern="[a-z0-9-]+" required />
+                <input
+                  name="country"
+                  defaultValue="uk"
+                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  required
+                />
                 <small>Vercel Demo 必填；正式 MSI 頁面可留空</small>
               </label>
               <label>

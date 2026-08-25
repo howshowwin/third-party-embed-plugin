@@ -36,6 +36,11 @@ test("keeps each tool manual in its own route folder", async () => {
   assert.match(manual, /src="\/tools\/third-party-embed\/demo\.js"/);
   assert.match(productFeed, /MSI Product Feed/);
   assert.match(productFeed, /src="\/tools\/product-feed\/demo\.js"/);
+  assert.match(
+    productFeed,
+    /pattern="\[a-z0-9\]\+\(\?:-\[a-z0-9\]\+\)\*"/,
+  );
+  assert.doesNotMatch(productFeed, /pattern="\[a-z0-9-\]\+"/);
 });
 
 test("uses the shared MSI Storage logo on the hub and tool manuals", async () => {
