@@ -11,7 +11,7 @@
     "build:plugin": "esbuild public/plugin/msi-third-party-embed.js --bundle --minify --format=esm --target=es2020 --legal-comments=none --outfile=dist/client/plugin/msi-third-party-embed.min.js && esbuild public/plugin/msi-third-party-embed.css --minify --legal-comments=none --outfile=dist/client/plugin/msi-third-party-embed.min.css",
     "build:all": "npm run build && npm run build:plugin",
     "start": "next start",
-    "test": "npm run build:all && node --test tests/access-gate.test.mjs tests/build-artifacts.test.mjs tests/plugin.test.mjs tests/translations.test.mjs tests/vercel-structure.test.mjs",
+    "test": "npm run build:all && node --test tests/access-gate.test.mjs tests/build-artifacts.test.mjs tests/plugin.test.mjs tests/tool-hub.test.mjs tests/translations.test.mjs tests/vercel-structure.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
   "dependencies": {

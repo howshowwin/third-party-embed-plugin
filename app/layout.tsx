@@ -4,9 +4,9 @@ import "./globals.css";
 const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ??
   (productionHost ? `https://${productionHost}` : "http://localhost:3000");
-const title = "MSI Privacy Embed Control 使用手冊";
+const title = "MSI Web Tools 文件中心";
 const description =
-  "供網站建置與內容維護人員使用的第三方 iframe、HTML、CSS 與 JavaScript 同意控制整合手冊。";
+  "MSI Web Tools 的內部使用手冊與互動 Demo 文件中心。";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -16,24 +16,12 @@ export const metadata: Metadata = {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
-  openGraph: {
-    title,
-    description,
-    type: "website",
-    images: [
-      {
-        url: "/og-guide.png",
-        width: 1200,
-        height: 630,
-        alt: "MSI Privacy Embed Control 第三方嵌入工具使用手冊",
-      },
-    ],
-  },
+  openGraph: { title, description, type: "website", images: [] },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title,
     description,
-    images: ["/og-guide.png"],
+    images: [],
   },
   robots: {
     index: false,

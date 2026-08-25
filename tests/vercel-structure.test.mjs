@@ -21,9 +21,9 @@ test("uses the standard Next.js build expected by Vercel", async () => {
 
 test("keeps only the production plugin assets remote", async () => {
   const [demo, stylesheet, page] = await Promise.all([
-    text("public/demo/demo.js"),
+    text("public/tools/third-party-embed/demo.js"),
     text("app/globals.css"),
-    text("app/page.tsx"),
+    text("app/tools/third-party-embed/page.tsx"),
   ]);
 
   assert.match(
@@ -36,7 +36,7 @@ test("keeps only the production plugin assets remote", async () => {
     stylesheet,
     /https:\/\/storage-asset\.msi\.com\/event\/msi-third-party-embed\/plugin\/msi-third-party-embed\.min\.css/,
   );
-  assert.match(page, /src="\/demo\/demo\.js"/);
+  assert.match(page, /src="\/tools\/third-party-embed\/demo\.js"/);
   assert.doesNotMatch(page, /demo-render/);
 });
 

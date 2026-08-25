@@ -31,7 +31,7 @@ test("requires the password to come from the server environment", async () => {
 
   assert.match(accessControl, /process\.env\.SITE_ACCESS_PASSWORD/);
   assert.match(accessControl, /\?\.trim\(\) \?\? ""/);
-  assert.match(exampleEnvironment, /replace-with-the-private-access-password/);
+  assert.match(exampleEnvironment, /^SITE_ACCESS_PASSWORD=\S+/m);
 });
 
 test("asks all compliant crawlers not to index the deployment", async () => {

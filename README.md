@@ -14,16 +14,26 @@
 
 不要先輸出帶有 `src` 的 iframe 再等待插件移除，因為瀏覽器可能已在插件執行前發出第三方請求。
 
-## 專案內容
+## 文件中心架構
 
-- `app/page.tsx`：Vercel 上顯示的完整使用手冊與 Demo 容器。
-- `app/globals.css`：Demo 網站樣式；由 Next.js 建置並由 Vercel 提供。
-- `public/demo/demo.js`：Demo 互動程式；只從 MSI Storage 匯入正式插件 JS。
+- `app/page.tsx`：工具文件首頁，從中央清單自動顯示所有 Tools。
+- `lib/tools.ts`：工具文件中央清單；首頁名稱、說明、版本與路由都從這裡讀取。
+- `app/tools/third-party-embed/page.tsx`：Third-party Embed Control 的完整使用手冊與 Demo 容器。
+- `app/globals.css`：文件中心與各工具 Demo 網站樣式；由 Next.js 建置並由 Vercel 提供。
+- `public/tools/third-party-embed/demo.js`：目前工具的 Demo 互動程式；只從 MSI Storage 匯入正式插件 JS。
 - `public/msi-logo.png`、`public/og-guide.png`：Demo 網站使用的本機圖片。
 - `public/plugin/translations.json`：Demo 使用的本機翻譯檔。
 - `public/third-party-providers.json`：Demo 使用的本機 Provider manifest。
 - `public/plugin/msi-third-party-embed.js`：可獨立使用的 ESM 插件。
 - `public/plugin/msi-third-party-embed.css`：插件 UI 樣式。
+
+### 新增下一個 Tool
+
+1. 在 `app/tools/<tool-slug>/page.tsx` 建立該工具的文件與 Demo 頁面。
+2. 在 `lib/tools.ts` 的 `toolDocuments` 增加一筆資料。
+3. 將該工具專用的瀏覽器程式與靜態資料放在 `public/tools/<tool-slug>/`，避免和其他 Tool 混用。
+
+完成後首頁會自動出現新工具，不需要修改首頁元件。共用的頁面外框或元件可放在 `components/docs/`；只有該工具使用的元件則留在自己的路由資料夾內。
 
 Demo 網站只有以下兩個正式插件檔案從 MSI Storage 載入：
 
