@@ -46,3 +46,21 @@ test("uses the shared MSI Storage logo on the hub and tool manuals", async () =>
   assert.doesNotMatch(homepage, /\/msi-logo\.png/);
   assert.doesNotMatch(manual, /\/msi-logo\.png/);
 });
+
+test("keeps all explicitly sized interface text at 12px or larger", async () => {
+  for (const path of [
+    "app/globals.css",
+    "public/plugin/msi-third-party-embed.css",
+  ]) {
+    const stylesheet = await text(path);
+    const pixelFontSizes = [
+      ...stylesheet.matchAll(/font(?:-size)?\s*:[^;\n]*?(\d+)px/g),
+    ].map((match) => Number(match[1]));
+
+    assert.ok(pixelFontSizes.length > 0, `No font sizes found in ${path}`);
+    assert.ok(
+      pixelFontSizes.every((size) => size >= 12),
+      `Found interface text below 12px in ${path}`,
+    );
+  }
+});

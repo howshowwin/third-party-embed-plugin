@@ -165,7 +165,7 @@ pre {
 .tools-hub__brand small {
   margin-top: 4px;
   color: #98a2b3;
-  font: 700 9px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 700 12px/1 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.12em;
 }
 
@@ -175,7 +175,7 @@ pre {
   border: 1px solid #d0d5dd;
   border-radius: 999px;
   background: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -193,7 +193,7 @@ pre {
 .tools-hub__intro p {
   margin: 0 0 12px;
   color: var(--red);
-  font: 800 10px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 800 12px/1 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.13em;
 }
 
@@ -247,7 +247,7 @@ pre {
   align-items: center;
   justify-content: space-between;
   color: #98a2b3;
-  font: 700 9px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 700 12px/1 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -270,7 +270,7 @@ pre {
 .tool-card__body p {
   margin: 0 0 7px;
   color: var(--red);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -306,7 +306,7 @@ pre {
   color: #475467;
   border-radius: 4px;
   background: #f2f4f7;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -317,7 +317,7 @@ pre {
   gap: 12px;
   padding-top: 16px;
   border-top: 1px solid var(--line);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .tool-card footer > span {
@@ -420,7 +420,7 @@ pre {
 .manual-brand small {
   margin-top: 4px;
   color: #98a2b3;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.12em;
 }
 
@@ -433,7 +433,7 @@ pre {
 .manual-nav p {
   margin: 22px 10px 8px;
   color: #667085;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.16em;
 }
@@ -461,7 +461,7 @@ pre {
 .manual-nav a span {
   color: #667085;
   font-family: var(--font-geist-mono), Consolas, monospace;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .sidebar-footer {
@@ -473,7 +473,7 @@ pre {
 
 .version-badge {
   color: #7f8a9d;
-  font: 600 9px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 600 12px/1 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.09em;
 }
 
@@ -485,7 +485,7 @@ pre {
   color: #f2f4f7;
   background: #1d2939;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -512,7 +512,7 @@ pre {
   align-items: center;
   gap: 9px;
   color: #98a2b3;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .manual-topbar b {
@@ -547,7 +547,7 @@ pre {
   padding-bottom: 20px;
   border-bottom: 1px solid var(--line);
   color: #98a2b3;
-  font: 700 9px/1.4 var(--font-geist-mono), Consolas, monospace;
+  font: 700 12px/1.4 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.12em;
 }
 
@@ -631,7 +631,7 @@ pre {
 .section-index {
   padding-top: 7px;
   color: #98a2b3;
-  font: 700 11px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 700 12px/1 var(--font-geist-mono), Consolas, monospace;
 }
 
 .section-body {
@@ -641,7 +641,7 @@ pre {
 .section-title p {
   margin: 0 0 12px;
   color: var(--red);
-  font: 800 9px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 800 12px/1 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.15em;
 }
 
@@ -736,7 +736,7 @@ pre {
 .approval-flow > div span {
   margin-bottom: 20px;
   color: var(--red);
-  font: 700 9px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 700 12px/1 var(--font-geist-mono), Consolas, monospace;
 }
 
 .approval-flow > div strong {
@@ -746,7 +746,7 @@ pre {
 
 .approval-flow > div small {
   color: #98a2b3;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -782,19 +782,19 @@ pre {
   min-height: 42px;
   color: #667085;
   background: #f2f4f7;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.06em;
 }
 
 .field-row code {
   color: var(--blue);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .field-row b {
   color: #667085;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .provider-heading {
@@ -827,7 +827,7 @@ pre {
   border-radius: 4px;
   color: var(--red);
   background: var(--red-soft);
-  font: 800 8px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 800 12px/1 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.08em;
 }
 
@@ -843,14 +843,14 @@ pre {
 
 .provider-origin small {
   color: #98a2b3;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1em;
 }
 
 .provider-origin code {
   color: #344054;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .section-body h3 {
@@ -891,7 +891,7 @@ pre {
   color: #fff;
   background: var(--green);
   content: "✓";
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 900;
 }
 
@@ -901,7 +901,7 @@ pre {
   gap: 8px;
   margin: 18px 0 0;
   color: #98a2b3;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .source-note a {
@@ -924,7 +924,7 @@ pre {
   padding: 0 14px 0 18px;
   border-bottom: 1px solid #344054;
   color: #98a2b3;
-  font: 700 9px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 700 12px/1 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.09em;
 }
 
@@ -935,7 +935,7 @@ pre {
   color: #d0d5dd;
   background: #1d2939;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .code-toolbar button[data-copied="true"] {
@@ -949,7 +949,7 @@ pre {
   padding: 22px;
   overflow: auto;
   color: #e4e7ec;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.75;
   tab-size: 2;
 }
@@ -962,7 +962,7 @@ pre {
 .preview-note {
   margin: 11px 2px 0;
   color: #7f8a9d;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -983,7 +983,7 @@ pre {
 
 .behavior-grid span {
   color: var(--red);
-  font: 800 9px/1 var(--font-geist-mono), Consolas, monospace;
+  font: 800 12px/1 var(--font-geist-mono), Consolas, monospace;
   letter-spacing: 0.1em;
 }
 
@@ -1025,7 +1025,7 @@ pre {
 
 .status-panel span {
   color: #98a2b3;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -1035,7 +1035,7 @@ pre {
   flex-wrap: wrap;
   gap: 5px;
   min-height: 17px;
-  font: 500 11px/1.5 var(--font-geist-mono), Consolas, monospace;
+  font: 500 12px/1.5 var(--font-geist-mono), Consolas, monospace;
 }
 
 #manifest-state[data-state="ready"] {
@@ -1074,7 +1074,7 @@ pre {
   color: #e4e7ec;
   background: #1d2939;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -1105,7 +1105,7 @@ pre {
   padding: 13px 15px;
   border-bottom: 1px solid var(--line);
   color: #475467;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .activity-log time {
@@ -1135,7 +1135,7 @@ pre {
   color: #98a2b3;
   background: #fff;
   border-top: 1px solid var(--line);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .manual-footer a {
@@ -1279,12 +1279,12 @@ pre {
   }
 
   .manual-topbar button {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .code-block pre {
     padding: 17px;
-    font-size: 10px;
+    font-size: 12px;
   }
 }
 
