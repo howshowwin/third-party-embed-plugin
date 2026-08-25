@@ -249,25 +249,37 @@ export default function ProductFeedGuide() {
             <form className="feed-demo-controls feed-demo-controls--selector" id="product-feed-controls">
               <label>
                 <span>Country</span>
-                <select name="country" defaultValue="uk">
+                <input
+                  name="country"
+                  defaultValue="uk"
+                  list="product-feed-country-list"
+                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  autoComplete="off"
+                  required
+                />
+                <datalist id="product-feed-country-list">
                   {demoCountries.map(([code, label]) => (
-                    <option value={code} key={code}>{label} — {code}</option>
+                    <option value={code} key={code}>{label}</option>
                   ))}
-                </select>
-                <small>決定 API 與產品連結使用的 MSI Local</small>
+                </datalist>
+                <small>可自行輸入國碼；清單僅提供常用 MSI Local 建議</small>
               </label>
               <label>
                 <span>Product Line</span>
-                <select name="productLine" defaultValue="nb">
-                  <option value="nb">nb</option>
-                  <option value="hh">hh</option>
-                  <option value="desktop">desktop</option>
-                  <option value="monitor">monitor</option>
-                  <option value="pro-monitors">pro-monitors</option>
-                  <option value="vga">vga</option>
-                  <option value="mb">mb</option>
-                </select>
-                <small>選擇後取得該產品線目前提供的分類 Title</small>
+                <input
+                  name="productLine"
+                  defaultValue="nb"
+                  list="product-feed-line-list"
+                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  autoComplete="off"
+                  required
+                />
+                <datalist id="product-feed-line-list">
+                  {['nb', 'hh', 'desktop', 'monitor', 'pro-monitors', 'vga', 'mb'].map((line) => (
+                    <option value={line} key={line} />
+                  ))}
+                </datalist>
+                <small>可自行輸入 Product Line；清單只列常用項目</small>
               </label>
               <div className="feed-demo-controls__actions">
                 <button type="submit" id="product-feed-tag-submit" disabled>取得分類 Title</button>

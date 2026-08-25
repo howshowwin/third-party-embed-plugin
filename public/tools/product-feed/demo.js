@@ -112,14 +112,23 @@ async function requestTagTitles(country, productLine, signal) {
     headers: { Accept: "application/json" },
   });
 
-  if (!response.ok) {
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
     throw new MSIProductFeedError(
-      "HTTP_ERROR",
-      `MSI product API returned HTTP ${response.status}.`,
+      "INVALID_RESPONSE",
+      "Product API Proxy 沒有回傳有效 JSON。",
     );
   }
 
-  const payload = await response.json();
+  if (!response.ok) {
+    throw new MSIProductFeedError(
+      "HTTP_ERROR",
+      payload?.status?.response || `MSI product API returned HTTP ${response.status}.`,
+    );
+  }
+
   if (Number(payload?.status?.code) !== 200) {
     throw new MSIProductFeedError(
       "API_ERROR",
@@ -135,7 +144,16 @@ async function requestTagTitles(country, productLine, signal) {
     );
   }
 
-  return flattenFilterTags(filterTagList);
+  const tags = flattenFilterTags(filterTagList);
+  if (tags.length === 0) {
+    throw new MSIProductFeedError(
+      "NO_TAGS",
+      `找不到 ${country}.msi.com 的 Product Line「${productLine}」或分類資料。`,
+      { country, productLine },
+    );
+  }
+
+  return tags;
 }
 
 function getErrorMessage(error) {
@@ -181,8 +199,8 @@ clearTagsButton?.addEventListener("click", () => {
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = new FormData(form);
-  const country = String(values.get("country") ?? "uk");
-  const productLine = String(values.get("productLine") ?? "nb");
+  const country = String(values.get("country") ?? "uk").trim().toLowerCase();
+  const productLine = String(values.get("productLine") ?? "nb").trim().toLowerCase();
 
   resetTagOptions("正在讀取 API…");
   const currentRequest = new AbortController();
@@ -218,8 +236,8 @@ renderButton?.addEventListener("click", async () => {
   appendLog("以勾選的 tagTitles 呼叫 Product API", "loading");
 
   activeFeed = new MSIProductFeed({
-    productLine: String(values.get("productLine") ?? "nb"),
-    country: String(values.get("country") ?? "uk"),
+    productLine: String(values.get("productLine") ?? "nb").trim().toLowerCase(),
+    country: String(values.get("country") ?? "uk").trim().toLowerCase(),
     tagTitles,
     sort: "default",
     pageSize: 99,
