@@ -30,6 +30,11 @@ const tagCount = document.querySelector("#product-feed-tag-count");
 const selectAllButton = document.querySelector("#product-feed-select-all");
 const clearTagsButton = document.querySelector("#product-feed-clear-tags");
 const renderButton = document.querySelector("#product-feed-render");
+const countryPreset = document.querySelector("#product-feed-country-preset");
+const countryCustom = document.querySelector("#product-feed-country-custom");
+const productLinePreset = document.querySelector("#product-feed-line-preset");
+const productLineCustom = document.querySelector("#product-feed-line-custom");
+const OTHER_PRESET_VALUE = "__other__";
 let activeFeed = null;
 let tagRequest = null;
 let currentLocale = document.documentElement.dataset.siteLocale === "en"
@@ -72,6 +77,9 @@ function translateDemo() {
   }
   for (const element of demoSection?.querySelectorAll("[data-feed-i18n-aria-label]") ?? []) {
     element.setAttribute("aria-label", translate(element.dataset.feedI18nAriaLabel));
+  }
+  for (const element of demoSection?.querySelectorAll("[data-feed-i18n-placeholder]") ?? []) {
+    element.setAttribute("placeholder", translate(element.dataset.feedI18nPlaceholder));
   }
   for (const element of demoSection?.querySelectorAll("[data-feed-message]") ?? []) {
     refreshMessage(element);
@@ -227,6 +235,32 @@ function getErrorDescriptor(error) {
   };
 }
 
+function setupPresetControl(select, input) {
+  if (!select || !input) return;
+
+  const sync = ({ focus = false } = {}) => {
+    const isCustom = select.value === OTHER_PRESET_VALUE;
+    input.hidden = !isCustom;
+    input.required = isCustom;
+
+    if (isCustom) {
+      input.value = input.dataset.customValue ?? "";
+      if (focus) input.focus();
+    } else {
+      input.value = select.value;
+    }
+  };
+
+  input.addEventListener("input", () => {
+    if (!input.hidden) input.dataset.customValue = input.value;
+  });
+  select.addEventListener("change", () => sync({ focus: true }));
+  sync();
+}
+
+setupPresetControl(countryPreset, countryCustom);
+setupPresetControl(productLinePreset, productLineCustom);
+
 window.addEventListener("msi-site-locale-change", (event) => {
   const locale = event.detail?.locale;
   if (!PRODUCT_FEED_DEMO_MESSAGES[locale]) return;
@@ -246,7 +280,7 @@ for (const button of document.querySelectorAll("[data-feed-copy]")) {
   });
 }
 
-for (const field of form?.querySelectorAll('[name="country"], [name="productLine"]') ?? []) {
+for (const field of form?.querySelectorAll("[data-feed-setting]") ?? []) {
   field.addEventListener("change", () => {
     resetTagOptions();
     setStatus("status.settingsChanged");

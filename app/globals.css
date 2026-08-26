@@ -1848,18 +1848,21 @@ pre {
   background: #fff;
 }
 
-.feed-demo-controls label {
+.feed-demo-controls label,
+.feed-demo-field {
   display: grid;
   gap: 7px;
 }
 
-.feed-demo-controls label > span {
+.feed-demo-controls label > span,
+.feed-demo-field > span {
   color: #344054;
   font-size: 12px;
   font-weight: 800;
 }
 
-.feed-demo-controls label > small {
+.feed-demo-controls label > small,
+.feed-demo-field > small {
   color: #98a2b3;
   font-size: 12px;
   line-height: 1.45;
@@ -1877,6 +1880,10 @@ pre {
   outline: none;
   background: #fff;
   font: 400 13px/1.5 var(--font-geist-sans), Arial, sans-serif;
+}
+
+.feed-demo-controls .feed-custom-value {
+  margin-top: 2px;
 }
 
 .feed-demo-controls textarea {

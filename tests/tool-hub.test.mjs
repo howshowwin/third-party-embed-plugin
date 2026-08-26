@@ -40,8 +40,9 @@ test("keeps each tool manual in its own route folder", async () => {
   assert.match(productFeed, /src="\/tools\/product-feed\/demo\.js"/);
   assert.match(productFeed, /id="product-feed-tag-options"/);
   assert.match(productFeed, /id="product-feed-tag-array"/);
-  assert.match(productFeed, /list="product-feed-country-list"/);
-  assert.match(productFeed, /list="product-feed-line-list"/);
+  assert.match(productFeed, /id="product-feed-country-preset"/);
+  assert.match(productFeed, /id="product-feed-line-preset"/);
+  assert.match(productFeed, /value="__other__"/);
   assert.match(productFeed, /SiteLanguageSwitcher/);
   assert.doesNotMatch(productFeed, /name="tagTitles"/);
   assert.doesNotMatch(productFeed, /name="sort"/);
@@ -49,6 +50,8 @@ test("keeps each tool manual in its own route folder", async () => {
   assert.match(productFeedDemo, /flattenFilterTags/);
   assert.match(productFeedDemo, /JSON\.stringify\(selected, null, 2\)/);
   assert.match(productFeedDemo, /"NO_TAGS"/);
+  assert.match(productFeedDemo, /setupPresetControl/);
+  assert.match(productFeedDemo, /OTHER_PRESET_VALUE/);
   assert.match(productFeedDemo, /PRODUCT_FEED_DEMO_MESSAGES/);
   assert.match(productFeedDemo, /translateDemo/);
   assert.match(productFeedI18n, /"zh-TW"/);

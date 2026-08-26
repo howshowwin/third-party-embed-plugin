@@ -62,6 +62,8 @@ function isExcluded(node) {
       const tag = current.openingElement.tagName.getText();
       if (tag === "pre" || tag === "code") return true;
       if (hasAttribute(current.openingElement, "data-feed-i18n")) return true;
+      if (hasAttribute(current.openingElement, "data-feed-i18n-aria-label")) return true;
+      if (hasAttribute(current.openingElement, "data-feed-i18n-placeholder")) return true;
       if (hasAttribute(current.openingElement, "data-site-i18n-ignore")) return true;
     }
     current = current.parent;
@@ -85,6 +87,14 @@ function collectVisibleChinese(path, text) {
       && node.initializer
       && ts.isStringLiteral(node.initializer)
       && ["aria-label", "placeholder", "title"].includes(node.name.text)
+      && !node.parent.properties.some(
+        (attribute) => ts.isJsxAttribute(attribute)
+          && [
+            "data-feed-i18n",
+            "data-feed-i18n-aria-label",
+            "data-feed-i18n-placeholder",
+          ].includes(attribute.name.text),
+      )
     ) {
       add(node.initializer.text);
     }

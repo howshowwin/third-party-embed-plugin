@@ -251,40 +251,52 @@ export default function ProductFeedGuide() {
             </p>
 
             <form className="feed-demo-controls feed-demo-controls--selector" id="product-feed-controls">
-              <label>
-                <span data-feed-i18n="country.label">國家</span>
+              <div className="feed-demo-field">
+                <span id="product-feed-country-label" data-feed-i18n="country.label">國家</span>
+                <select id="product-feed-country-preset" defaultValue="uk" data-feed-setting aria-labelledby="product-feed-country-label">
+                  {demoCountries.map(([code, label]) => (
+                    <option value={code} key={code}>{label} ({code})</option>
+                  ))}
+                  <option value="__other__" data-feed-i18n="common.other">其他</option>
+                </select>
                 <input
+                  id="product-feed-country-custom"
+                  className="feed-custom-value"
                   name="country"
                   defaultValue="uk"
-                  list="product-feed-country-list"
                   pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
                   autoComplete="off"
-                  required
+                  data-feed-setting
+                  data-feed-i18n-placeholder="country.otherPlaceholder"
+                  placeholder="輸入國碼，例如 nz"
+                  aria-labelledby="product-feed-country-label"
+                  hidden
                 />
-                <datalist id="product-feed-country-list">
-                  {demoCountries.map(([code, label]) => (
-                    <option value={code} key={code}>{label}</option>
+                <small data-feed-i18n="country.help">預設清單提供常用 MSI Local；選擇「其他」可自行輸入國碼</small>
+              </div>
+              <div className="feed-demo-field">
+                <span id="product-feed-line-label" data-feed-i18n="productLine.label">產品線</span>
+                <select id="product-feed-line-preset" defaultValue="nb" data-feed-setting aria-labelledby="product-feed-line-label">
+                  {['nb', 'hh', 'desktop', 'monitor', 'pro-monitors', 'vga', 'mb'].map((line) => (
+                    <option value={line} key={line}>{line}</option>
                   ))}
-                </datalist>
-                <small data-feed-i18n="country.help">可自行輸入國碼；清單僅提供常用 MSI Local 建議</small>
-              </label>
-              <label>
-                <span data-feed-i18n="productLine.label">產品線</span>
+                  <option value="__other__" data-feed-i18n="common.other">其他</option>
+                </select>
                 <input
+                  id="product-feed-line-custom"
+                  className="feed-custom-value"
                   name="productLine"
                   defaultValue="nb"
-                  list="product-feed-line-list"
                   pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
                   autoComplete="off"
-                  required
+                  data-feed-setting
+                  data-feed-i18n-placeholder="productLine.otherPlaceholder"
+                  placeholder="輸入 Product Line"
+                  aria-labelledby="product-feed-line-label"
+                  hidden
                 />
-                <datalist id="product-feed-line-list">
-                  {['nb', 'hh', 'desktop', 'monitor', 'pro-monitors', 'vga', 'mb'].map((line) => (
-                    <option value={line} key={line} />
-                  ))}
-                </datalist>
-                <small data-feed-i18n="productLine.help">可自行輸入 Product Line；清單只列常用項目</small>
-              </label>
+                <small data-feed-i18n="productLine.help">預設清單提供常用 Product Line；選擇「其他」可自行輸入</small>
+              </div>
               <div className="feed-demo-controls__actions">
                 <button type="submit" id="product-feed-tag-submit" data-feed-i18n="categories.fetch" disabled>取得分類 Title</button>
                 <span id="product-feed-status" aria-live="polite">請先取得分類</span>

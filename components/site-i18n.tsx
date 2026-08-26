@@ -46,7 +46,9 @@ function shouldSkip(node: Node) {
     : node.parentElement;
   if (!parent) return true;
   if (SKIPPED_TAGS.has(parent.tagName)) return true;
-  return Boolean(parent.closest("[data-site-i18n-ignore], [data-feed-i18n]"));
+  return Boolean(parent.closest(
+    "[data-site-i18n-ignore], [data-feed-i18n], [data-feed-i18n-aria-label], [data-feed-i18n-placeholder]",
+  ));
 }
 
 export function SiteI18nProvider({ children }: { children: ReactNode }) {
