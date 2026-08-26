@@ -30,10 +30,11 @@ const tagCount = document.querySelector("#product-feed-tag-count");
 const selectAllButton = document.querySelector("#product-feed-select-all");
 const clearTagsButton = document.querySelector("#product-feed-clear-tags");
 const renderButton = document.querySelector("#product-feed-render");
-const localeButtons = document.querySelectorAll("[data-feed-locale]");
 let activeFeed = null;
 let tagRequest = null;
-let currentLocale = PRODUCT_FEED_DEMO_DEFAULT_LOCALE;
+let currentLocale = document.documentElement.dataset.siteLocale === "en"
+  ? "en"
+  : PRODUCT_FEED_DEMO_DEFAULT_LOCALE;
 
 function translate(key, variables = {}) {
   const messages = PRODUCT_FEED_DEMO_MESSAGES[currentLocale]
@@ -74,9 +75,6 @@ function translateDemo() {
   }
   for (const element of demoSection?.querySelectorAll("[data-feed-message]") ?? []) {
     refreshMessage(element);
-  }
-  for (const button of localeButtons) {
-    button.setAttribute("aria-pressed", String(button.dataset.feedLocale === currentLocale));
   }
   if (demoSection) demoSection.lang = currentLocale === "en" ? "en" : "zh-Hant";
   updateTagArray();
@@ -229,14 +227,12 @@ function getErrorDescriptor(error) {
   };
 }
 
-for (const button of localeButtons) {
-  button.addEventListener("click", () => {
-    const locale = button.dataset.feedLocale;
-    if (!PRODUCT_FEED_DEMO_MESSAGES[locale]) return;
-    currentLocale = locale;
-    translateDemo();
-  });
-}
+window.addEventListener("msi-site-locale-change", (event) => {
+  const locale = event.detail?.locale;
+  if (!PRODUCT_FEED_DEMO_MESSAGES[locale]) return;
+  currentLocale = locale;
+  translateDemo();
+});
 
 for (const button of document.querySelectorAll("[data-feed-copy]")) {
   button.addEventListener("click", async () => {

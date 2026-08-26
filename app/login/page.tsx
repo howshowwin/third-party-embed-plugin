@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteLanguageSwitcher } from "../../components/site-i18n";
 
 export const metadata: Metadata = {
   title: "登入｜MSI Privacy Embed Control",
@@ -19,6 +20,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="access-page">
       <form className="access-form" action="/api/site-access" method="post">
+        <SiteLanguageSwitcher className="access-language-switcher" />
         <input type="hidden" name="next" value={params.next ?? "/"} />
         <input
           name="password"

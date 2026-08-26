@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
+import { SiteLanguageSwitcher } from "../../../components/site-i18n";
 import { MSI_LOGO_URL } from "../../../lib/brand";
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ const mainProgramCode = `<link rel="stylesheet"
   const control = new MSIThirdPartyEmbedControl();
   await control.init();
 
-  // 將各服務章節的 control.create(...) 接在這裡
+  // Append control.create(...) from each service section here
 </script>`;
 
 const youkuEmbed = `await control.create({
@@ -40,7 +41,7 @@ const youkuEmbed = `await control.create({
   providerId: "youku-video",
   target: "#demo-0",
   url: "https://player.youku.com/embed/YOUR_YOUKU_VID?client_id=YOUR_CLIENT_ID",
-  title: "YOUKU 影片",
+  title: "YOUKU Video",
   allow: "autoplay; encrypted-media; fullscreen; picture-in-picture"
 });`;
 
@@ -103,7 +104,7 @@ const genericSnippet = `await control.create({
   css: '.vendor-widget { min-height: 320px; }',
   js: [
     ({ global, root, options, signal }) => {
-      // 只有同意後才會執行；可在這裡初始化 queue 或呼叫 API
+      // Runs only after consent; initialize a queue or call an API here
     },
     { src: "https://vendor.example/sdk.js" }
   ],
@@ -150,6 +151,7 @@ export default function ThirdPartyEmbedGuide() {
         <div className="embed-header-actions">
           <Link className="feed-doc__all-tools" href="/">所有工具</Link>
           <button type="button" data-open-settings>管理同意</button>
+          <SiteLanguageSwitcher />
         </div>
       </header>
 

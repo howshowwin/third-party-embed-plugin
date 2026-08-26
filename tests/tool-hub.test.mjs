@@ -42,8 +42,7 @@ test("keeps each tool manual in its own route folder", async () => {
   assert.match(productFeed, /id="product-feed-tag-array"/);
   assert.match(productFeed, /list="product-feed-country-list"/);
   assert.match(productFeed, /list="product-feed-line-list"/);
-  assert.match(productFeed, /data-feed-locale="zh-TW"/);
-  assert.match(productFeed, /data-feed-locale="en"/);
+  assert.match(productFeed, /SiteLanguageSwitcher/);
   assert.doesNotMatch(productFeed, /name="tagTitles"/);
   assert.doesNotMatch(productFeed, /name="sort"/);
   assert.doesNotMatch(productFeed, /name="html"/);

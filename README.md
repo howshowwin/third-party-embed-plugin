@@ -18,6 +18,8 @@ MSI 內部前端工具與互動式使用手冊。目前包含第三方嵌入同�
 
 - `app/page.tsx`：工具文件首頁，從中央清單自動顯示所有 Tools。
 - `lib/tools.ts`：工具文件中央清單；首頁名稱、說明、版本與路由都從這裡讀取。
+- `lib/site-i18n.ts`：文件網站繁中／英文翻譯與各路由頁面標題。
+- `components/site-i18n.tsx`：全站語系狀態、Header 切換器及語系偏好保存。
 - `app/tools/third-party-embed/page.tsx`：Third-party Embed Control 的完整使用手冊與 Demo 容器。
 - `app/tools/product-feed/page.tsx`：MSI Product Feed 的完整使用手冊與即時 API Demo。
 - `app/globals.css`：文件中心與各工具 Demo 網站樣式；由 Next.js 建置並由 Vercel 提供。
@@ -37,6 +39,8 @@ MSI 內部前端工具與互動式使用手冊。目前包含第三方嵌入同�
 3. 將該工具專用的瀏覽器程式與靜態資料放在 `public/tools/<tool-slug>/`，避免和其他 Tool 混用。
 
 完成後首頁會自動出現新工具，不需要修改首頁元件。共用的頁面外框或元件可放在 `components/docs/`；只有該工具使用的元件則留在自己的路由資料夾內。
+
+新增或修改可見中文文案時，也要在 `lib/site-i18n.ts` 補上英文。翻譯覆蓋率測試會檢查首頁、登入頁與所有工具手冊，避免英文模式遺漏新文案。使用者在 Header 選擇的語言會保存於瀏覽器，換頁後繼續沿用。
 
 Demo 網站只有以下兩個正式插件檔案從 MSI Storage 載入：
 

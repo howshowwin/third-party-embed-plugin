@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { SiteI18nProvider } from "../components/site-i18n";
+import { SITE_LOCALE_STORAGE_KEY } from "../lib/site-i18n";
 import "./globals.css";
 
 const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
@@ -41,8 +43,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-Hant">
-      <body>{children}</body>
+    <html lang="zh-Hant" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var l=localStorage.getItem(${JSON.stringify(SITE_LOCALE_STORAGE_KEY)});if(l==="en"){document.documentElement.dataset.siteLocale="en";document.documentElement.lang="en"}else{document.documentElement.dataset.siteLocale="zh-TW"}}catch(e){document.documentElement.dataset.siteLocale="zh-TW"}`,
+          }}
+        />
+      </head>
+      <body><SiteI18nProvider>{children}</SiteI18nProvider></body>
     </html>
   );
 }

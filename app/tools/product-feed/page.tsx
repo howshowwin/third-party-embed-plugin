@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
+import { SiteLanguageSwitcher } from "../../../components/site-i18n";
 import { MSI_LOGO_URL } from "../../../lib/brand";
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ const importCode = `<script type="module">
 
 const basicCode = `const feed = new MSIProductFeed({
   productLine: "nb",
-  country: "uk", // 留空時使用目前網域；mtc 會轉為 www
+  country: "uk", // Omit to use the current host; mtc resolves to www
   tagTitles: [
     "Titan Series",
     "Stealth / Creator Series",
@@ -74,7 +75,7 @@ console.log(result.products);`;
 const countryCode = `country: "uk"  // https://uk.msi.com
 country: "tw"  // https://tw.msi.com
 country: "mtc" // https://www.msi.com
-country: ""    // 目前網域；目前為 mtc 時改用 www`;
+country: ""    // Current host; mtc resolves to www`;
 
 const demoCountries = [
   ["www", "Global"], ["africa", "Africa"], ["arg", "Argentina"],
@@ -127,7 +128,10 @@ export default function ProductFeedGuide() {
           <a href="#lifecycle">生命週期</a>
           <a href="#live-demo">Live Demo</a>
         </nav>
-        <Link className="feed-doc__all-tools" href="/">所有工具</Link>
+        <div className="feed-header-actions">
+          <Link className="feed-doc__all-tools" href="/">所有工具</Link>
+          <SiteLanguageSwitcher />
+        </div>
       </header>
 
       <section className="feed-hero">
@@ -240,18 +244,7 @@ export default function ProductFeedGuide() {
           </section>
 
           <section id="live-demo" className="feed-demo-section">
-            <div className="feed-demo-heading">
-              <div className="feed-section-title"><span>07</span><div><p>LIVE API</p><h2 data-feed-i18n="demo.title">互動 Demo</h2></div></div>
-              <div
-                className="feed-locale-switch"
-                role="group"
-                aria-label="Demo 語言"
-                data-feed-i18n-aria-label="language.label"
-              >
-                <button type="button" data-feed-locale="zh-TW" aria-pressed="true">中文</button>
-                <button type="button" data-feed-locale="en" aria-pressed="false">English</button>
-              </div>
-            </div>
+            <div className="feed-section-title"><span>07</span><div><p>LIVE API</p><h2 data-feed-i18n="demo.title">互動 Demo</h2></div></div>
             <p className="feed-lead" data-feed-i18n="demo.lead">
               選擇國家與產品線，先取得 API 提供的所有分類 Title。勾選需要的分類後，
               上方會產生可複製的 <code>tagTitles</code> 陣列，再以相同選擇載入產品 Demo。

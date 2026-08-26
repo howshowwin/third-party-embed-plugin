@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteLanguageSwitcher } from "../components/site-i18n";
 import { MSI_LOGO_URL } from "../lib/brand";
 import { getToolHref, toolDocuments } from "../lib/tools";
 
@@ -16,7 +17,10 @@ export default function ToolsHub() {
             <small>INTERNAL DOCUMENTATION</small>
           </span>
         </div>
-        <span className="tools-hub__count">{toolDocuments.length} 個工具</span>
+        <div className="tools-hub__actions">
+          <span className="tools-hub__count">{toolDocuments.length} 個工具</span>
+          <SiteLanguageSwitcher />
+        </div>
       </header>
 
       <section className="tools-hub__intro" aria-labelledby="tools-title">
