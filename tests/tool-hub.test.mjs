@@ -41,6 +41,9 @@ test("keeps each tool manual in its own route folder", async () => {
     productFeed,
     /https:\/\/storage-asset\.msi\.com\/event\/msi-product-feed\/js\/msi-product-feed\.min\.js/,
   );
+  assert.match(productFeed, /const basicCode = `<script type="module">/);
+  assert.match(productFeed, /await feed\.init\(\);\s*<\/script>/);
+  assert.doesNotMatch(productFeed, /id="feed-import"/);
   assert.match(productFeed, /src="\/tools\/product-feed\/demo\.js"/);
   assert.match(productFeed, /id="product-feed-tag-options"/);
   assert.match(productFeed, /id="product-feed-tag-array"/);

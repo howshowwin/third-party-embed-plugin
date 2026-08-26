@@ -23,12 +23,11 @@ export const metadata: Metadata = {
   },
 };
 
-const importCode = `<script type="module">
-  import { MSIProductFeed } from
-    "https://storage-asset.msi.com/event/msi-product-feed/js/msi-product-feed.min.js";
-</script>`;
+const basicCode = `<script type="module">
+import { MSIProductFeed } from
+  "https://storage-asset.msi.com/event/msi-product-feed/js/msi-product-feed.min.js";
 
-const basicCode = `const feed = new MSIProductFeed({
+const feed = new MSIProductFeed({
   productLine: "nb",
   country: "uk", // Omit to use the current host; mtc resolves to www
   tagTitles: [
@@ -61,16 +60,17 @@ const basicCode = `const feed = new MSIProductFeed({
   }
 });
 
-await feed.init();`;
+await feed.init();
+</script>`;
 
-const dataOnlyCode = `const result = await new MSIProductFeed({
+const dataOnlyCode = `new MSIProductFeed({
   productLine: "monitor",
   tagTitles: ["MPG Series"],
   sort: "date"
-}).init();
-
-console.log(result.matchedTags);
-console.log(result.products);`;
+}).init().then((result) => {
+  console.log(result.matchedTags);
+  console.log(result.products);
+}).catch(console.error);`;
 
 const countryCode = `country: "uk"  // https://uk.msi.com
 country: "tw"  // https://tw.msi.com
@@ -179,9 +179,12 @@ export default function ProductFeedGuide() {
 
           <section id="quick-start">
             <div className="feed-section-title"><span>02</span><div><p>GETTING STARTED</p><h2>快速開始</h2></div></div>
-            <p>將建置後的 ESM 檔案放入網站，再建立一個 Feed 實例。</p>
-            <CodeBlock id="feed-import" code={importCode} language="HTML" />
-            <CodeBlock id="feed-basic" code={basicCode} />
+            <p>將以下完整 module script 放入網站，再建立一個 Feed 實例。</p>
+            <CodeBlock id="feed-basic" code={basicCode} language="HTML" />
+            <div className="feed-note feed-note--security">
+              <strong>必須保留 module script</strong>
+              <p>上方範例必須整段放在同一個 module script 中。一般 script 若直接使用頂層 await，就會出現 await is only valid in async functions 的錯誤。</p>
+            </div>
             <div className="feed-note">
               <strong>API 失敗時維持原畫面</strong>
               <p>在 Tag 或 Product API 完成前不會執行 before，也不會清除目前的靜態內容。</p>
