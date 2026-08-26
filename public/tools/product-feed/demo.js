@@ -1,7 +1,9 @@
 import {
+  createTagListUrl,
   flattenFilterTags,
   MSIProductFeed,
   MSIProductFeedError,
+  resolveMsiOrigin,
   toPlainText,
 } from "./msi-product-feed.js";
 import {
@@ -20,6 +22,9 @@ const PRODUCT_CARD_TEMPLATE = `<div class="slider__Laptops-box">
 </div>`;
 
 const demoSection = document.querySelector("#live-demo");
+const demoProxyUrl = globalThis.MSI_PRODUCT_FEED_DEMO_CONFIG?.proxyUrl
+  ?? demoSection?.dataset.feedProxyUrl
+  ?? "";
 const form = document.querySelector("#product-feed-controls");
 const status = document.querySelector("#product-feed-status");
 const log = document.querySelector("#product-feed-log");
@@ -161,10 +166,18 @@ function renderTagOptions(tags) {
 }
 
 async function requestTagTitles(country, productLine, signal) {
-  const url = new URL("/api/tools/product-feed", globalThis.location.origin);
-  url.searchParams.set("endpoint", "tags");
-  url.searchParams.set("country", country);
-  url.searchParams.set("product_line", productLine);
+  const url = demoProxyUrl
+    ? new URL(demoProxyUrl, globalThis.location.origin)
+    : new URL(createTagListUrl(
+      resolveMsiOrigin(country, globalThis.location),
+      productLine,
+    ));
+
+  if (demoProxyUrl) {
+    url.searchParams.set("endpoint", "tags");
+    url.searchParams.set("country", country);
+    url.searchParams.set("product_line", productLine);
+  }
   const response = await fetch(url, {
     signal,
     credentials: "same-origin",
@@ -175,7 +188,7 @@ async function requestTagTitles(country, productLine, signal) {
   try {
     payload = await response.json();
   } catch {
-    throw new MSIProductFeedError("INVALID_RESPONSE", "Invalid proxy JSON response.");
+    throw new MSIProductFeedError("INVALID_RESPONSE", "Invalid MSI API JSON response.");
   }
 
   if (!response.ok) {
@@ -348,7 +361,7 @@ renderButton?.addEventListener("click", async () => {
     pageSize: 99,
     target: "#product-feed-demo",
     html: PRODUCT_CARD_TEMPLATE.replace("__LEARN_MORE__", translate("product.learnMore")),
-    proxyUrl: "/api/tools/product-feed",
+    ...(demoProxyUrl ? { proxyUrl: demoProxyUrl } : {}),
     before({ target, products }) {
       setStatus("status.replacing", {}, "loading");
       appendLog("log.before", { count: products.length });

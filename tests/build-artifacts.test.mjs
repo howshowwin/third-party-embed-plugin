@@ -21,6 +21,14 @@ const paths = {
     "../dist/client/tools/product-feed/msi-product-feed.min.js",
     import.meta.url,
   ),
+  productFeedDemoSource: new URL(
+    "../public/tools/product-feed/standalone-demo.js",
+    import.meta.url,
+  ),
+  productFeedDemoMin: new URL(
+    "../dist/client/demo/msi-product-feed-demo.min.js",
+    import.meta.url,
+  ),
 };
 
 test("builds upload-ready minified plugin assets", async () => {
@@ -62,4 +70,20 @@ test("builds an upload-ready Product Feed module", async () => {
     `${paths.productFeedMin.href}?test=${process.pid}-${Date.now()}`
   );
   assert.equal(typeof productFeedModule.MSIProductFeed, "function");
+});
+
+test("builds a standalone direct-API Product Feed demo", async () => {
+  const [source, minified] = await Promise.all([
+    stat(paths.productFeedDemoSource),
+    stat(paths.productFeedDemoMin),
+  ]);
+
+  assert.ok(source.size > 0);
+  assert.ok(minified.size > source.size);
+
+  const javascript = await readFile(paths.productFeedDemoMin, "utf8");
+  assert.match(javascript, /MSI Product Feed Demo/);
+  assert.match(javascript, /getProductTagList/);
+  assert.doesNotMatch(javascript, /\/api\/tools\/product-feed/);
+  assert.doesNotMatch(javascript, /<(?:html|head)(?:\s|>)|__next_f|_next\/static/i);
 });

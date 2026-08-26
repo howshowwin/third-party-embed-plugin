@@ -110,7 +110,30 @@ Product Feed 可單獨執行：
 npm run build:product-feed
 ```
 
-輸出檔案為 `dist/client/tools/product-feed/msi-product-feed.min.js`。執行 `npm run build:all` 會同時建置網站、第三方嵌入插件與 Product Feed。
+輸出檔案為 `dist/client/tools/product-feed/msi-product-feed.min.js`。
+
+如需產生可直接放進頁面的單檔 Product Feed Demo，執行：
+
+```bash
+npm run build:product-feed-demo
+```
+
+輸出檔案為 `dist/client/demo/msi-product-feed-demo.min.js`。它只會建立 Demo 的 body 介面，並已內嵌所需 HTML、CSS、i18n、互動程式與 Product Feed 主程式，不含 Next.js 頁面框架或 Vercel Proxy。使用方式：
+
+```html
+<script src="/path/msi-product-feed-demo.min.js"></script>
+```
+
+預設附加至 `document.body`；若要放入指定容器，可設定：
+
+```html
+<div id="product-feed-tool"></div>
+<script src="/path/msi-product-feed-demo.min.js" data-target="#product-feed-tool"></script>
+```
+
+此單檔 Demo 會直接呼叫所選的 `https://{country}.msi.com/api/v1/product/...`。放在相同 MSI Local 網域時可避免跨來源問題；若放在 Vercel、localhost 或選擇不同 Local，仍可能被瀏覽器 CORS 政策阻擋。Vercel 文件頁則繼續使用站內 Proxy。
+
+執行 `npm run build:all` 會同時建置網站、第三方嵌入插件、Product Feed 與單檔 Product Feed Demo。
 
 ## Provider manifest
 

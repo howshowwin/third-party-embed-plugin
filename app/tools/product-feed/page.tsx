@@ -246,7 +246,11 @@ export default function ProductFeedGuide() {
             <p className="feed-lead">正式 MSI 頁面建議留空以呼叫同網域 API。指定不同 Local 時瀏覽器可能受 CORS 限制，需由後端 Proxy 轉送；本頁 Vercel Demo 已使用受登入保護的 Proxy。</p>
           </section>
 
-          <section id="live-demo" className="feed-demo-section">
+          <section
+            id="live-demo"
+            className="feed-demo-section"
+            data-feed-proxy-url="/api/tools/product-feed"
+          >
             <div className="feed-section-title"><span>07</span><div><p>LIVE API</p><h2 data-feed-i18n="demo.title">互動 Demo</h2></div></div>
             <p className="feed-lead" data-feed-i18n="demo.lead">
               選擇國家與產品線，先取得 API 提供的所有分類 Title。勾選需要的分類後，

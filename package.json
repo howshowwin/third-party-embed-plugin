@@ -10,7 +10,8 @@
     "build": "next build",
     "build:plugin": "esbuild public/plugin/msi-third-party-embed.js --bundle --minify --format=esm --target=es2020 --legal-comments=none --outfile=dist/client/plugin/msi-third-party-embed.min.js && esbuild public/plugin/msi-third-party-embed.css --minify --legal-comments=none --outfile=dist/client/plugin/msi-third-party-embed.min.css",
     "build:product-feed": "esbuild public/tools/product-feed/msi-product-feed.js --bundle --minify --format=esm --target=es2020 --legal-comments=none --outfile=dist/client/tools/product-feed/msi-product-feed.min.js",
-    "build:all": "npm run build && npm run build:plugin && npm run build:product-feed",
+    "build:product-feed-demo": "esbuild public/tools/product-feed/standalone-demo.js --bundle --minify --format=iife --target=es2020 --legal-comments=none --loader:.css=text --outfile=dist/client/demo/msi-product-feed-demo.min.js",
+    "build:all": "npm run build && npm run build:plugin && npm run build:product-feed && npm run build:product-feed-demo",
     "start": "next start",
     "test": "npm run build:all && node --test tests/access-gate.test.mjs tests/build-artifacts.test.mjs tests/plugin.test.mjs tests/product-feed.test.mjs tests/site-i18n.test.mjs tests/tool-hub.test.mjs tests/translations.test.mjs tests/vercel-structure.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
