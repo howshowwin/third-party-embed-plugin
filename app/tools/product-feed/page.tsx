@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 const importCode = `<script type="module">
   import { MSIProductFeed } from
-    "/path/to/msi-product-feed.min.js";
+    "https://storage-asset.msi.com/event/msi-product-feed/js/msi-product-feed.min.js";
 </script>`;
 
 const basicCode = `const feed = new MSIProductFeed({

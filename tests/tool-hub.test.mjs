@@ -37,6 +37,10 @@ test("keeps each tool manual in its own route folder", async () => {
   assert.match(manual, /href="\/"/);
   assert.match(manual, /src="\/tools\/third-party-embed\/demo\.js"/);
   assert.match(productFeed, /MSI Product Feed/);
+  assert.match(
+    productFeed,
+    /https:\/\/storage-asset\.msi\.com\/event\/msi-product-feed\/js\/msi-product-feed\.min\.js/,
+  );
   assert.match(productFeed, /src="\/tools\/product-feed\/demo\.js"/);
   assert.match(productFeed, /id="product-feed-tag-options"/);
   assert.match(productFeed, /id="product-feed-tag-array"/);
