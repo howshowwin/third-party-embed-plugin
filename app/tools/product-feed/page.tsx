@@ -29,7 +29,7 @@ import { MSIProductFeed } from
 
 const feed = new MSIProductFeed({
   productLine: "nb",
-  country: "uk", // Omit to use the current host; mtc resolves to www
+  country: "uk", // Omit to use the current host
   tagTitles: [
     "Titan Series",
     "Stealth / Creator Series",
@@ -74,11 +74,11 @@ const dataOnlyCode = `new MSIProductFeed({
 
 const countryCode = `country: "uk"  // https://uk.msi.com
 country: "tw"  // https://tw.msi.com
-country: "mtc" // https://www.msi.com
-country: ""    // Current host; mtc resolves to www`;
+country: "mtc" // https://mtc.msi.com
+country: ""    // Current host`;
 
 const demoCountries = [
-  ["www", "Global"], ["africa", "Africa"], ["arg", "Argentina"],
+  ["www", "Global"], ["mtc", "MTC"], ["africa", "Africa"], ["arg", "Argentina"],
   ["au", "Australia"], ["br", "Brazil"], ["bg", "Bulgaria"],
   ["kh", "Cambodia"], ["ca", "Canada"], ["ca-fr", "Canada (French)"],
   ["cl", "Chile"], ["cn", "China"], ["co", "Colombia"],

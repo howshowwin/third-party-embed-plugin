@@ -39,8 +39,7 @@ export async function GET(request: NextRequest) {
 
   const search = request.nextUrl.searchParams;
   const endpoint = search.get("endpoint");
-  const rawCountry = (search.get("country") ?? "").trim().toLowerCase();
-  const country = rawCountry === "mtc" ? "www" : rawCountry;
+  const country = (search.get("country") ?? "").trim().toLowerCase();
   const productLine = (search.get("product_line") ?? "").trim().toLowerCase();
 
   if (endpoint !== "tags" && endpoint !== "products") {

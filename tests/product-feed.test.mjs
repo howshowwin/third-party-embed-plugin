@@ -128,8 +128,8 @@ function createFakeDocument(target) {
 
 test("resolves configured and current MSI country origins", () => {
   assert.equal(resolveMsiOrigin("uk", "https://tw.msi.com/page"), "https://uk.msi.com");
-  assert.equal(resolveMsiOrigin("mtc", "https://tw.msi.com/page"), "https://www.msi.com");
-  assert.equal(resolveMsiOrigin("", "https://mtc.msi.com/page"), "https://www.msi.com");
+  assert.equal(resolveMsiOrigin("mtc", "https://tw.msi.com/page"), "https://mtc.msi.com");
+  assert.equal(resolveMsiOrigin("", "https://mtc.msi.com/page"), "https://mtc.msi.com");
   assert.equal(resolveMsiOrigin(undefined, "https://tw.msi.com/page"), "https://tw.msi.com");
   assert.throws(() => resolveMsiOrigin("../uk", "https://tw.msi.com"), {
     code: "INVALID_COUNTRY",
@@ -254,6 +254,22 @@ test("runs before, replaces the target, and then runs after", async () => {
   assert.equal(new URL(requests[0]).searchParams.get("endpoint"), "tags");
   assert.equal(new URL(requests[1]).searchParams.get("endpoint"), "products");
   assert.equal(new URL(requests[1]).searchParams.get("country"), "uk");
+});
+
+test("keeps mtc as the API country for proxied requests", async () => {
+  const requests = [];
+  const feed = new MSIProductFeed({
+    productLine: "nb",
+    country: "",
+    tagTitles: ["Titan Series"],
+    proxyUrl: "/api/tools/product-feed",
+    location: "https://mtc.msi.com/page",
+    fetcher: createApiFetcher(requests),
+  });
+
+  await feed.init();
+  assert.equal(new URL(requests[0]).searchParams.get("country"), "mtc");
+  assert.equal(new URL(requests[1]).searchParams.get("country"), "mtc");
 });
 
 test("keeps existing content when API loading fails", async () => {

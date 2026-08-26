@@ -101,7 +101,7 @@ export function normalizeCountryCode(country) {
     );
   }
 
-  return code === "mtc" ? "www" : code;
+  return code;
 }
 
 export function resolveMsiOrigin(country, locationLike = globalThis.location) {
@@ -111,11 +111,7 @@ export function resolveMsiOrigin(country, locationLike = globalThis.location) {
     return `https://${code}.msi.com`;
   }
 
-  const { hostname, origin } = getLocationParts(locationLike);
-
-  if (hostname.toLowerCase() === "mtc.msi.com") {
-    return "https://www.msi.com";
-  }
+  const { origin } = getLocationParts(locationLike);
 
   if (!origin) {
     throw new MSIProductFeedError(
@@ -136,10 +132,6 @@ function getProxyCountry(country, locationLike) {
 
   const { hostname } = getLocationParts(locationLike);
   const hostnameCode = hostname.toLowerCase().split(".")[0] ?? "";
-
-  if (hostname.toLowerCase() === "mtc.msi.com") {
-    return "www";
-  }
 
   return COUNTRY_CODE_PATTERN.test(hostnameCode) ? hostnameCode : "";
 }
