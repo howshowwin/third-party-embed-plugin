@@ -201,7 +201,7 @@ export default function ProductFeedGuide() {
               <div className="feed-table__row" role="row"><code>sort</code><span><code>default</code> 或 <code>date</code></span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>target</code><span>要替換內容的 selector 或 DOM Element</span><b>渲染時</b></div>
               <div className="feed-table__row" role="row"><code>html</code><span>每一筆產品重複使用的 HTML 模板</span><b>渲染時</b></div>
-              <div className="feed-table__row" role="row"><code>strictTags</code><span>預設 true；任一 Tag 找不到就停止，不顯示部分資料</span><b>否</b></div>
+              <div className="feed-table__row" role="row"><code>strictTags</code><span>預設 false；找不到的 Tag 會略過並記錄於 missingTagTitles。設為 true 才會中止</span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>pageSize</code><span>預設 99</span><b>否</b></div>
             </div>
             <p>若不設定 target 與 html，工具只會回傳整理後的資料：</p>

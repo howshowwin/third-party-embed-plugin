@@ -174,7 +174,7 @@ export function flattenFilterTags(filterTagList) {
 export function resolveTagSelection(
   filterTagList,
   requestedTitles,
-  { strict = true } = {},
+  { strict = false } = {},
 ) {
   if (!Array.isArray(requestedTitles) || requestedTitles.length === 0) {
     throw new MSIProductFeedError(
@@ -637,7 +637,7 @@ export class MSIProductFeed {
     options.sort = validateSort(options.sort);
     options.pageNumber = normalizePositiveInteger(options.pageNumber, "pageNumber", 1);
     options.pageSize = normalizePositiveInteger(options.pageSize, "pageSize", 99);
-    options.strictTags = options.strictTags !== false;
+    options.strictTags = options.strictTags === true;
     options.requestTimeoutMs = normalizePositiveInteger(
       options.requestTimeoutMs,
       "requestTimeoutMs",

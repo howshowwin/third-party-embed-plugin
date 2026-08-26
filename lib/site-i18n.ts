@@ -63,7 +63,7 @@ export const SITE_ENGLISH_TEXT: Readonly<Record<string, string>> = Object.freeze
   "要替換內容的 selector 或 DOM Element": "Selector or DOM Element whose content will be replaced",
   "渲染時": "For rendering",
   "每一筆產品重複使用的 HTML 模板": "HTML template repeated for each product",
-  "預設 true；任一 Tag 找不到就停止，不顯示部分資料": "Defaults to true; stop if any Tag is missing instead of showing partial data",
+  "預設 false；找不到的 Tag 會略過並記錄於 missingTagTitles。設為 true 才會中止": "Defaults to false; missing Tags are skipped and reported in missingTagTitles. Set it to true to stop instead.",
   "預設 99": "Defaults to 99",
   "若不設定 target 與 html，工具只會回傳整理後的資料：": "If target and html are omitted, the tool only returns normalized data:",
   "整段 HTML 代表一筆產品。API 值會先跳脫後再寫入文字與 Attribute，不會把產品名稱當成可執行 HTML。": "The full HTML block represents one product. API values are escaped before being inserted into text or attributes, so product names are never treated as executable HTML.",

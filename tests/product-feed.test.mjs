@@ -145,15 +145,23 @@ test("flattens direct and nested API tag collections", () => {
   ]);
 });
 
-test("matches tag titles exactly and fails closed by default", () => {
+test("matches tag titles exactly and skips missing tags by default", () => {
   const selection = resolveTagSelection(filterTagList, [
     "Titan Series",
     "Raider Series",
+    "Missing Series",
   ]);
   assert.deepEqual(selection.ids, [9392, 125270]);
+  assert.deepEqual(selection.missingTagTitles, ["Missing Series"]);
   assert.throws(
-    () => resolveTagSelection(filterTagList, ["titan series"]),
+    () => resolveTagSelection(filterTagList, ["Titan Series", "Missing Series"], {
+      strict: true,
+    }),
     (error) => error instanceof MSIProductFeedError && error.code === "TAG_NOT_FOUND",
+  );
+  assert.throws(
+    () => resolveTagSelection(filterTagList, ["Missing Series"]),
+    (error) => error instanceof MSIProductFeedError && error.code === "NO_TAG_IDS",
   );
 });
 
@@ -230,7 +238,7 @@ test("runs before, replaces the target, and then runs after", async () => {
   const feed = new MSIProductFeed({
     productLine: "nb",
     country: "uk",
-    tagTitles: ["Titan Series"],
+    tagTitles: ["Titan Series", "Missing Series"],
     target: "#products",
     html: '<a href="{link}"><img src="{img}" alt="{title}"><h4>{title}</h4></a>',
     proxyUrl: "/api/tools/product-feed",
@@ -250,6 +258,7 @@ test("runs before, replaces the target, and then runs after", async () => {
   const result = await feed.init();
   assert.deepEqual(calls, ["before", "render", "after"]);
   assert.equal(result.products[0].titleText, "Titan 18 ® HX");
+  assert.deepEqual(result.missingTagTitles, ["Missing Series"]);
   assert.match(target.content, /Titan 18 ® HX/);
   assert.equal(new URL(requests[0]).searchParams.get("endpoint"), "tags");
   assert.equal(new URL(requests[1]).searchParams.get("endpoint"), "products");
