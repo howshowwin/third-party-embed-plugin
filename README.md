@@ -25,7 +25,7 @@ MSI 內部前端工具與互動式使用手冊。目前包含第三方嵌入同�
 - `app/globals.css`：文件中心與各工具 Demo 網站樣式；由 Next.js 建置並由 Vercel 提供。
 - `public/tools/third-party-embed/demo.js`：目前工具的 Demo 互動程式；只從 MSI Storage 匯入正式插件 JS。
 - `public/tools/product-feed/msi-product-feed.js`：Product Feed 的零依賴 ESM 主程式。
-- `public/tools/product-feed/demo.js`：Product Feed 文件頁的互動 Demo。
+- `public/tools/product-feed/demo.js`：單檔 Product Feed Demo 的互動程式。
 - `public/og-guide.png`：Third-party Embed Control 文件使用的社群預覽圖片。
 - `public/plugin/translations.json`：Demo 使用的本機翻譯檔。
 - `public/third-party-providers.json`：Demo 使用的本機 Provider manifest。
@@ -131,7 +131,7 @@ npm run build:product-feed-demo
 <script src="/path/msi-product-feed-demo.min.js" data-target="#product-feed-tool"></script>
 ```
 
-此單檔 Demo 會直接呼叫所選的 `https://{country}.msi.com/api/v1/product/...`。放在相同 MSI Local 網域時可避免跨來源問題；若放在 Vercel、localhost 或選擇不同 Local，仍可能被瀏覽器 CORS 政策阻擋。Vercel 文件頁則繼續使用站內 Proxy。
+此單檔 Demo 會直接呼叫所選的 `https://{country}.msi.com/api/v1/product/...`。放在相同 MSI Local 網域時可避免跨來源問題；若放在 Vercel、localhost 或選擇不同 Local，仍可能被瀏覽器 CORS 政策阻擋。文件頁不再呼叫 API，改為連往指定的 MTC 預覽頁。
 
 執行 `npm run build:all` 會同時建置網站、第三方嵌入插件、Product Feed 與單檔 Product Feed Demo。
 

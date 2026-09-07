@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { SiteLanguageSwitcher } from "../../../components/site-i18n";
 import { MSI_LOGO_URL } from "../../../lib/brand";
 
@@ -77,24 +76,6 @@ country: "tw"  // https://tw.msi.com
 country: "mtc" // https://mtc.msi.com
 country: ""    // Current host`;
 
-const demoCountries = [
-  ["www", "Global"], ["mtc", "MTC"], ["africa", "Africa"], ["arg", "Argentina"],
-  ["au", "Australia"], ["br", "Brazil"], ["bg", "Bulgaria"],
-  ["kh", "Cambodia"], ["ca", "Canada"], ["ca-fr", "Canada (French)"],
-  ["cl", "Chile"], ["cn", "China"], ["co", "Colombia"],
-  ["cz", "Czech Republic"], ["eeu", "East Europe"], ["fr", "France"],
-  ["de", "Germany"], ["gr", "Greece"], ["hk", "Hong Kong"],
-  ["hu", "Hungary"], ["in", "India"], ["id", "Indonesia"],
-  ["it", "Italy"], ["jp", "Japan"], ["kr", "Korea"],
-  ["latam", "Latin America"], ["my", "Malaysia"], ["mx", "Mexico"],
-  ["ar", "Middle East Arabic"], ["nl", "Netherlands"], ["pe", "Peru"],
-  ["ph", "Philippines"], ["pl", "Poland"], ["ro", "Romania"],
-  ["ru", "Russia"], ["sg", "Singapore"], ["es", "Spain"],
-  ["se", "Sweden"], ["tw", "Taiwan"], ["th", "Thailand"],
-  ["tr", "Türkiye"], ["ua", "Ukraine"], ["uk", "United Kingdom"],
-  ["us", "United States"], ["vn", "Vietnam"],
-] as const;
-
 function CodeBlock({ id, code, language = "JavaScript" }: {
   id: string;
   code: string;
@@ -126,7 +107,7 @@ export default function ProductFeedGuide() {
         <nav aria-label="頁面導覽">
           <a href="#quick-start">快速開始</a>
           <a href="#lifecycle">生命週期</a>
-          <a href="#live-demo">Live Demo</a>
+          <a href="#live-demo">Demo</a>
         </nav>
         <div className="feed-header-actions">
           <Link className="feed-doc__all-tools" href="/">所有工具</Link>
@@ -159,7 +140,7 @@ export default function ProductFeedGuide() {
           <a href="#template">HTML 模板</a>
           <a href="#lifecycle">Before / After</a>
           <a href="#country">國碼與網域</a>
-          <a href="#live-demo">Live API Demo</a>
+          <a href="#live-demo">Demo</a>
         </aside>
 
         <article className="feed-doc__content">
@@ -243,122 +224,20 @@ export default function ProductFeedGuide() {
           <section id="country">
             <div className="feed-section-title"><span>06</span><div><p>LOCAL RESOLUTION</p><h2>國碼與網域</h2></div></div>
             <CodeBlock id="feed-country" code={countryCode} />
-            <p className="feed-lead">正式 MSI 頁面建議留空以呼叫同網域 API。指定不同 Local 時瀏覽器可能受 CORS 限制，需由後端 Proxy 轉送；本頁 Vercel Demo 已使用受登入保護的 Proxy。</p>
+            <p className="feed-lead">正式 MSI 頁面建議留空以呼叫同網域 API。指定不同 Local 時瀏覽器可能受 CORS 限制，需由後端 Proxy 轉送。</p>
           </section>
 
-          <section
-            id="live-demo"
-            className="feed-demo-section"
-            data-feed-proxy-url="/api/tools/product-feed"
-          >
-            <div className="feed-section-title"><span>07</span><div><p>LIVE API</p><h2 data-feed-i18n="demo.title">互動 Demo</h2></div></div>
-            <p className="feed-lead" data-feed-i18n="demo.lead">
-              選擇國家與產品線，先取得 API 提供的所有分類 Title。勾選需要的分類後，
-              上方會產生可複製的 <code>tagTitles</code> 陣列，再以相同選擇載入產品 Demo。
-            </p>
-
-            <form className="feed-demo-controls feed-demo-controls--selector" id="product-feed-controls">
-              <div className="feed-demo-field">
-                <span id="product-feed-country-label" data-feed-i18n="country.label">國家</span>
-                <select id="product-feed-country-preset" defaultValue="uk" data-feed-setting aria-labelledby="product-feed-country-label">
-                  {demoCountries.map(([code, label]) => (
-                    <option value={code} key={code}>{label} ({code})</option>
-                  ))}
-                  <option value="__other__" data-feed-i18n="common.other">其他</option>
-                </select>
-                <input
-                  id="product-feed-country-custom"
-                  className="feed-custom-value"
-                  name="country"
-                  defaultValue="uk"
-                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                  autoComplete="off"
-                  data-feed-setting
-                  data-feed-i18n-placeholder="country.otherPlaceholder"
-                  placeholder="輸入國碼，例如 nz"
-                  aria-labelledby="product-feed-country-label"
-                  hidden
-                />
-                <small data-feed-i18n="country.help">預設清單提供常用 MSI Local；選擇「其他」可自行輸入國碼</small>
-              </div>
-              <div className="feed-demo-field">
-                <span id="product-feed-line-label" data-feed-i18n="productLine.label">產品線</span>
-                <select id="product-feed-line-preset" defaultValue="nb" data-feed-setting aria-labelledby="product-feed-line-label">
-                  {['nb', 'hh', 'desktop', 'monitor', 'pro-monitors', 'vga', 'mb'].map((line) => (
-                    <option value={line} key={line}>{line}</option>
-                  ))}
-                  <option value="__other__" data-feed-i18n="common.other">其他</option>
-                </select>
-                <input
-                  id="product-feed-line-custom"
-                  className="feed-custom-value"
-                  name="productLine"
-                  defaultValue="nb"
-                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                  autoComplete="off"
-                  data-feed-setting
-                  data-feed-i18n-placeholder="productLine.otherPlaceholder"
-                  placeholder="輸入 Product Line"
-                  aria-labelledby="product-feed-line-label"
-                  hidden
-                />
-                <small data-feed-i18n="productLine.help">預設清單提供常用 Product Line；選擇「其他」可自行輸入</small>
-              </div>
-              <div className="feed-demo-controls__actions">
-                <button type="submit" id="product-feed-tag-submit" data-feed-i18n="categories.fetch" disabled>取得分類 Title</button>
-                <span id="product-feed-status" aria-live="polite">請先取得分類</span>
-              </div>
-            </form>
-
-            <section className="feed-tag-builder" aria-labelledby="feed-tag-builder-title">
-              <div className="feed-tag-preview">
-                <div>
-                  <span data-feed-i18n="array.label">TAG TITLES 陣列</span>
-                  <strong id="product-feed-tag-count">已選擇 0 項</strong>
-                </div>
-                <pre><code id="product-feed-tag-array">[]</code></pre>
-                <button type="button" data-feed-copy="product-feed-tag-array" data-feed-i18n="array.copy">複製陣列</button>
-              </div>
-
-              <fieldset className="feed-tag-fieldset">
-                <legend id="feed-tag-builder-title" data-feed-i18n="category.legend">分類 Title</legend>
-                <div className="feed-tag-options" id="product-feed-tag-options">
-                  <p data-feed-i18n="category.initial">輸入國家與產品線，再按「取得分類 Title」。</p>
-                </div>
-              </fieldset>
-
-              <div className="feed-tag-actions">
-                <button type="button" id="product-feed-select-all" data-feed-i18n="actions.selectAll" disabled>全選</button>
-                <button type="button" id="product-feed-clear-tags" data-feed-i18n="actions.clear" disabled>清除</button>
-                <button type="button" id="product-feed-render" data-feed-i18n="actions.load" disabled>載入所選產品 Demo</button>
-              </div>
-            </section>
-
-            <div className="feed-demo-runtime">
-              <div>
-                <span data-feed-i18n="runtime.label">渲染目標</span>
-                <strong data-feed-i18n="runtime.description">API 成功後才替換下方內容</strong>
-              </div>
-              <ol id="product-feed-log" aria-live="polite">
-                <li data-feed-i18n="runtime.initial">目前為原始靜態內容</li>
-              </ol>
-            </div>
-
-            <div
-              className="slider__Laptops is-slider-ready"
-              id="product-feed-demo"
-              aria-label="MSI Product Feed Demo 結果"
+          <section id="live-demo" className="feed-demo-section feed-demo-link-section">
+            <div className="feed-section-title"><span>07</span><div><p>LIVE DEMO</p><h2>查看實際 Demo</h2></div></div>
+            <p className="feed-lead">前往 MTC 預覽頁查看 Product Feed 的實際執行結果。</p>
+            <a
+              className="feed-demo-link"
+              href="https://mtc.msi.com/preview/promotion/detail/27346?country_code=global"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <div className="slider__Laptops-box slider__Laptops-box--static">
-                <div className="slider__Laptops-item">
-                  <div className="feed-static-art" aria-hidden="true" data-feed-i18n="static.badge">靜態內容</div>
-                  <span className="product-label" data-feed-i18n="static.current">目前頁面</span>
-                  <h4 data-feed-i18n="static.title">原本正在運作的靜態產品內容</h4>
-                  <p data-feed-i18n="static.description">資料載入失敗時，這個區塊不會被清除或解除初始化。</p>
-                  <a href="#live-demo"><span data-feed-i18n="static.waiting">等待 API</span></a>
-                </div>
-              </div>
-            </div>
+              開啟 Demo
+            </a>
           </section>
         </article>
       </div>
@@ -367,8 +246,6 @@ export default function ProductFeedGuide() {
         <span>MSI Product Feed · Internal usage guide</span>
         <div><Link href="/">所有工具</Link><a href="#top">回到頁首 ↑</a></div>
       </footer>
-
-      <Script type="module" src="/tools/product-feed/demo.js" strategy="afterInteractive" />
     </main>
   );
 }

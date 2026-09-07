@@ -44,12 +44,14 @@ test("keeps each tool manual in its own route folder", async () => {
   assert.match(productFeed, /const basicCode = `<script type="module">/);
   assert.match(productFeed, /await feed\.init\(\);\s*<\/script>/);
   assert.doesNotMatch(productFeed, /id="feed-import"/);
-  assert.match(productFeed, /src="\/tools\/product-feed\/demo\.js"/);
-  assert.match(productFeed, /id="product-feed-tag-options"/);
-  assert.match(productFeed, /id="product-feed-tag-array"/);
-  assert.match(productFeed, /id="product-feed-country-preset"/);
-  assert.match(productFeed, /id="product-feed-line-preset"/);
-  assert.match(productFeed, /value="__other__"/);
+  assert.match(
+    productFeed,
+    /https:\/\/mtc\.msi\.com\/preview\/promotion\/detail\/27346\?country_code=global/,
+  );
+  assert.match(productFeed, /className="feed-demo-link"/);
+  assert.doesNotMatch(productFeed, /src="\/tools\/product-feed\/demo\.js"/);
+  assert.doesNotMatch(productFeed, /id="product-feed-tag-options"/);
+  assert.doesNotMatch(productFeed, /data-feed-proxy-url/);
   assert.match(productFeed, /SiteLanguageSwitcher/);
   assert.doesNotMatch(productFeed, /name="tagTitles"/);
   assert.doesNotMatch(productFeed, /name="sort"/);

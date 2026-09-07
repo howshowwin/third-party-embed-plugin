@@ -42,6 +42,7 @@ test("keeps only the production plugin assets remote", async () => {
 
 test("removes the obsolete single-file and Cloudflare entry points", async () => {
   for (const path of [
+    "app/api/tools/product-feed/route.ts",
     "scripts/export-demo.tsx",
     "vite.config.ts",
     "worker/index.ts",

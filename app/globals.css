@@ -1837,6 +1837,30 @@ pre {
   padding-bottom: 0 !important;
 }
 
+.feed-demo-link-section {
+  padding-bottom: 20px !important;
+}
+
+.feed-demo-link {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 11px 22px;
+  background: #e30613;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.feed-demo-link:hover,
+.feed-demo-link:focus-visible {
+  background: #b9000b;
+  transform: translateY(-1px);
+}
+
 .feed-demo-controls {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
