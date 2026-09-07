@@ -236,8 +236,7 @@ export default function ProductFeedGuide() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <span>開啟 Demo</span>
-              <span className="feed-demo-link__icon" aria-hidden="true">↗</span>
+              開啟 Demo
             </a>
           </section>
         </article>

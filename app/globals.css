@@ -1843,43 +1843,24 @@ pre {
 
 .feed-demo-link {
   display: inline-flex;
-  min-width: 180px;
-  min-height: 50px;
+  min-height: 42px;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  border: 2px solid #9f000c;
-  border-radius: 7px;
-  padding: 12px 24px;
-  background: linear-gradient(180deg, #ee1724 0%, #d60012 100%);
-  box-shadow: 0 5px 0 #8b000a, 0 10px 22px rgb(214 0 18 / 18%);
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 16px;
+  background: var(--navy);
   color: #fff !important;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  font-size: 13px;
+  font-weight: 700;
   text-decoration: none;
-  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition: background-color 160ms ease;
 }
 
-.feed-demo-link:hover {
-  background: linear-gradient(180deg, #f32935 0%, #e30613 100%);
-  box-shadow: 0 6px 0 #8b000a, 0 12px 26px rgb(214 0 18 / 24%);
-  transform: translateY(-2px);
-}
-
-.feed-demo-link:active {
-  box-shadow: 0 2px 0 #8b000a, 0 5px 12px rgb(214 0 18 / 18%);
-  transform: translateY(3px);
-}
-
+.feed-demo-link:hover,
 .feed-demo-link:focus-visible {
-  outline: 3px solid rgb(23 92 211 / 35%);
-  outline-offset: 4px;
-}
-
-.feed-demo-link__icon {
-  font-size: 20px;
-  line-height: 1;
+  background: var(--navy-soft);
+  outline: none;
 }
 
 .feed-demo-controls {
