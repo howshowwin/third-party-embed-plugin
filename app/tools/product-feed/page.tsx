@@ -74,6 +74,36 @@ const dataOnlyCode = `new MSIProductFeed({
   console.log(result.products);
 }).catch(console.error);`;
 
+const seriesModeCode = `<div class="series-slider">
+  <template data-msi-product-template>
+    <article class="series-card">
+      <img src="{img}" alt="{title}">
+      <h3>{title}</h3>
+      <a href="{link}" target="_blank">Learn More</a>
+    </article>
+  </template>
+</div>
+
+<script type="module">
+import { MSIProductFeed } from
+  "https://storage-asset.msi.com/event/msi-product-feed/js/msi-product-feed.min.js";
+
+const seriesFeed = new MSIProductFeed({
+  mode: "series",
+  productLine: "nb",
+  country: "www",
+  tagTitles: [
+    "Titan Series",
+    "Raider Series",
+    "Stealth / Creator Series"
+  ],
+  sort: "default",
+  target: ".series-slider"
+});
+
+await seriesFeed.init();
+</script>`;
+
 const countryCode = `country: "uk"  // https://uk.msi.com
 country: "tw"  // https://tw.msi.com
 country: "mtc" // https://mtc.msi.com
@@ -120,7 +150,7 @@ export default function ProductFeedGuide() {
 
       <section className="feed-hero">
         <div>
-          <p>PRODUCT DATA AUTOMATION · v0.2</p>
+          <p>PRODUCT DATA AUTOMATION · v0.3</p>
           <h1>MSI Product Feed</h1>
           <span>
             先解析產品 Tag ID，再載入產品資料，最後以頁面提供的 HTML 模板替換既有靜態區塊。
@@ -140,6 +170,7 @@ export default function ProductFeedGuide() {
           <a href="#overview">運作方式</a>
           <a href="#quick-start">快速開始</a>
           <a href="#configuration">設定參數</a>
+          <a href="#series-mode">系列模式</a>
           <a href="#template">HTML 模板</a>
           <a href="#lifecycle">Before / After</a>
           <a href="#country">國碼與網域</a>
@@ -151,7 +182,7 @@ export default function ProductFeedGuide() {
             <div className="feed-section-title"><span>01</span><div><p>OVERVIEW</p><h2>運作方式</h2></div></div>
             <p className="feed-lead">
               工具先呼叫 <code>getProductTagList</code>，遞迴整理單層及 <code>level2</code> Tag，使用完全相符的
-              <code> title </code>取得 ID；再以所有 ID 呼叫 <code>getProductList</code>。兩支 API 都成功後才開始碰觸 DOM。
+              <code> title </code>取得 ID；再依照顯示模式呼叫 <code>getProductList</code>。所有 API 都成功後才開始碰觸 DOM。
             </p>
             <ol className="feed-flow">
               <li><span>1</span><strong>Resolve Tags</strong><small>精確比對 title，取得並去除重複 ID</small></li>
@@ -183,6 +214,7 @@ export default function ProductFeedGuide() {
             <div className="feed-section-title"><span>03</span><div><p>CONFIGURATION</p><h2>設定參數</h2></div></div>
             <div className="feed-table" role="table" aria-label="Product Feed 設定參數">
               <div className="feed-table__row feed-table__head" role="row"><span>參數</span><span>說明</span><span>必填</span></div>
+              <div className="feed-table__row" role="row"><code>mode</code><span><code>products</code>（預設）逐筆顯示產品；<code>series</code> 每個系列顯示一張卡片</span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>productLine</code><span><code>nb</code>、<code>hh</code>、<code>desktop</code>、<code>monitor</code>、<code>pro-monitors</code>、<code>vga</code>、<code>mb</code> 或其他 Product Line</span><b>是</b></div>
               <div className="feed-table__row" role="row"><code>tagTitles</code><span>要在 filterTagList 中完全相符的標題陣列</span><b>是</b></div>
               <div className="feed-table__row" role="row"><code>country</code><span>API 與產品導連使用的國碼；未填使用目前網域</span><b>否</b></div>
@@ -191,14 +223,32 @@ export default function ProductFeedGuide() {
               <div className="feed-table__row" role="row"><code>html</code><span>舊版相容參數；未設定時會讀取 target 內的 template[data-msi-product-template]</span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>strictTags</code><span>預設 false；找不到的 Tag 會略過並記錄於 missingTagTitles。設為 true 才會中止</span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>pageSize</code><span>預設 99</span><b>否</b></div>
+              <div className="feed-table__row" role="row"><code>categoryPath</code><span>系列模式分類網址的產品線路徑；常用 Product Line 會自動轉換，特殊路徑才需要設定</span><b>否</b></div>
             </div>
             <p>若不設定 target，工具只會回傳整理後的資料：</p>
             <CodeBlock id="feed-data-only" code={dataOnlyCode} />
           </section>
 
+          <section id="series-mode">
+            <div className="feed-section-title"><span>04</span><div><p>SERIES MODE</p><h2>每個系列顯示一張卡片</h2></div></div>
+            <p className="feed-lead">
+              設定 <code>mode: &quot;series&quot;</code> 後，工具會依照 tagTitles 順序，分別取得每個系列的第一筆產品。
+              卡片圖片使用第一筆產品圖片，標題使用系列名稱，連結則前往該 Local 的系列產品列表。
+            </p>
+            <CodeBlock id="feed-series-mode" code={seriesModeCode} language="HTML" />
+            <div className="feed-note">
+              <strong>系列模式的模板值</strong>
+              <p><code>{`{img}`}</code> 是該系列第一筆產品圖片，<code>{`{title}`}</code> 是系列名稱，<code>{`{link}`}</code> 是包含 tag_multi_select 分類 ID 的產品列表網址。</p>
+            </div>
+            <div className="feed-note">
+              <strong>每個系列會各自查詢一次</strong>
+              <p>Product API 的合併結果沒有回傳產品所屬的 Tag ID，因此系列模式會對每個分類 ID 分別以 page_size=1 查詢，避免圖片與系列名稱配錯。</p>
+            </div>
+          </section>
+
           <section id="template">
-            <div className="feed-section-title"><span>04</span><div><p>HTML TEMPLATE</p><h2>模板變數</h2></div></div>
-            <p className="feed-lead">target 內的 template 代表一筆產品。API 值會先跳脫後再寫入文字與 Attribute，不會把產品名稱當成可執行 HTML。</p>
+            <div className="feed-section-title"><span>05</span><div><p>HTML TEMPLATE</p><h2>模板變數</h2></div></div>
+            <p className="feed-lead">target 內的 template 代表一筆輸出項目。API 值會先跳脫後再寫入文字與 Attribute，不會把產品或系列名稱當成可執行 HTML。</p>
             <div className="feed-token-grid">
               <div><code>{`{img}`}</code><span>產品圖片 URL</span></div>
               <div><code>{`{title}`}</code><span>純文字產品名稱</span></div>
@@ -218,7 +268,7 @@ export default function ProductFeedGuide() {
           </section>
 
           <section id="lifecycle">
-            <div className="feed-section-title"><span>05</span><div><p>LIFECYCLE</p><h2>Before / After</h2></div></div>
+            <div className="feed-section-title"><span>06</span><div><p>LIFECYCLE</p><h2>Before / After</h2></div></div>
             <div className="feed-lifecycle">
               <article><span>BEFORE</span><h3>解除既有元件</h3><p>產品資料與離線 Fragment 都準備完成後才執行，可在此呼叫 unslick。</p></article>
               <i aria-hidden="true">→</i>
@@ -229,13 +279,13 @@ export default function ProductFeedGuide() {
           </section>
 
           <section id="country">
-            <div className="feed-section-title"><span>06</span><div><p>LOCAL RESOLUTION</p><h2>國碼與網域</h2></div></div>
+            <div className="feed-section-title"><span>07</span><div><p>LOCAL RESOLUTION</p><h2>國碼與網域</h2></div></div>
             <CodeBlock id="feed-country" code={countryCode} />
             <p className="feed-lead">正式 MSI 頁面建議留空以呼叫同網域 API。指定不同 Local 時瀏覽器可能受 CORS 限制，需由後端 Proxy 轉送。</p>
           </section>
 
           <section id="live-demo" className="feed-demo-section feed-demo-link-section">
-            <div className="feed-section-title"><span>07</span><div><p>LIVE DEMO</p><h2>查看實際 Demo</h2></div></div>
+            <div className="feed-section-title"><span>08</span><div><p>LIVE DEMO</p><h2>查看實際 Demo</h2></div></div>
             <p className="feed-lead">前往 MTC 預覽頁查看 Product Feed 的實際執行結果。</p>
             <a
               className="feed-demo-link"

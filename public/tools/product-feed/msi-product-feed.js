@@ -1,7 +1,17 @@
 const COUNTRY_CODE_PATTERN = /^[a-z0-9-]+$/;
 const PRODUCT_LINE_PATTERN = /^[a-z0-9-]+$/i;
 const VALID_SORTS = new Set(["default", "date"]);
+const VALID_MODES = new Set(["products", "series"]);
 const PRODUCT_TEMPLATE_SELECTOR = "template[data-msi-product-template]";
+const PRODUCT_LINE_CATEGORY_PATHS = Object.freeze({
+  nb: "Laptops",
+  hh: "Handhelds",
+  desktop: "Desktops",
+  monitor: "Monitors",
+  "pro-monitors": "Business-Productivity-Monitors",
+  vga: "Graphics-Cards",
+  mb: "Motherboards",
+});
 const TEMPLATE_PLACEHOLDERS = new Set([
   "id",
   "index",
@@ -33,7 +43,7 @@ const HTML_ENTITIES = {
   trade: "™",
 };
 
-export const MSI_PRODUCT_FEED_VERSION = "0.2.0";
+export const MSI_PRODUCT_FEED_VERSION = "0.3.0";
 
 export class MSIProductFeedError extends Error {
   constructor(code, message, details = {}) {
@@ -274,6 +284,27 @@ export function buildProductUrl(product, apiOrigin) {
   ).href;
 }
 
+export function buildSeriesUrl(
+  apiOrigin,
+  productLine,
+  tagId,
+  categoryPath,
+) {
+  const normalizedProductLine = validateProductLine(productLine);
+  const normalizedTagId = Number(tagId);
+
+  if (!Number.isInteger(normalizedTagId) || normalizedTagId < 1) {
+    throw new MSIProductFeedError("INVALID_TAG_ID", `Invalid product tag ID: ${tagId}`);
+  }
+
+  const path = categoryPath == null
+    ? PRODUCT_LINE_CATEGORY_PATHS[normalizedProductLine] ?? normalizedProductLine
+    : assertString(categoryPath, "categoryPath");
+  const url = new URL(`/${encodePath(path)}/Products`, `${apiOrigin}/`);
+  url.searchParams.set("tag_multi_select", String(normalizedTagId));
+  return url.href;
+}
+
 export function normalizeProduct(product, apiOrigin) {
   const raw = product && typeof product === "object" ? product : {};
 
@@ -290,6 +321,32 @@ export function normalizeProduct(product, apiOrigin) {
     productLine: toPlainText(raw.product_line),
     label: toPlainText(raw.label),
     raw,
+  };
+}
+
+function createSeriesItem(tag, firstProduct, options) {
+  const title = toPlainText(tag.title);
+  const url = buildSeriesUrl(
+    options.apiOrigin,
+    options.productLine,
+    tag.id,
+    options.categoryPath,
+  );
+
+  return {
+    id: tag.id,
+    title,
+    titleText: title,
+    subname: firstProduct.subname,
+    subnameText: firstProduct.subnameText,
+    link: url,
+    url,
+    picture: firstProduct.picture,
+    release: firstProduct.release,
+    productLine: options.productLine,
+    label: firstProduct.label,
+    firstProduct,
+    raw: tag,
   };
 }
 
@@ -440,6 +497,20 @@ function validateSort(sort) {
   return normalized;
 }
 
+function validateMode(mode) {
+  const normalized = String(mode ?? "products").toLowerCase();
+
+  if (!VALID_MODES.has(normalized)) {
+    throw new MSIProductFeedError(
+      "INVALID_MODE",
+      `mode must be one of: ${[...VALID_MODES].join(", ")}`,
+      { mode },
+    );
+  }
+
+  return normalized;
+}
+
 export function createTagListUrl(apiOrigin, productLine) {
   const url = new URL("/api/v1/product/getProductTagList", `${apiOrigin}/`);
   url.searchParams.set("product_line", validateProductLine(productLine));
@@ -549,6 +620,33 @@ async function fetchApiJson(fetcher, url, signal) {
   return payload;
 }
 
+async function fetchProducts(options, params, signal) {
+  const url = getRequestUrl("products", params, options);
+  const payload = await fetchApiJson(options.fetcher, url, signal);
+  const rawProducts = payload?.result?.getProductList;
+
+  if (!Array.isArray(rawProducts)) {
+    throw new MSIProductFeedError(
+      "INVALID_PRODUCT_RESPONSE",
+      "MSI product API response is missing result.getProductList.",
+    );
+  }
+
+  return { payload, rawProducts };
+}
+
+function normalizeFetchedProduct(raw, options, index) {
+  const product = normalizeProduct(raw, options.apiOrigin);
+  if (typeof options.buildProductUrl === "function") {
+    product.url = String(options.buildProductUrl(product, {
+      apiOrigin: options.apiOrigin,
+      index,
+      raw,
+    }) ?? "");
+  }
+  return product;
+}
+
 function resolveRenderTarget(target, documentObject) {
   const element = typeof target === "string"
     ? documentObject.querySelector(target)
@@ -583,11 +681,13 @@ async function runRenderLifecycle(options, result) {
   const documentObject = options.document ?? globalThis.document;
   const target = options.renderTarget
     ?? resolveRenderTarget(options.target, documentObject);
-  const fragment = createProductFragment(documentObject, options.html, result.products);
+  const fragment = createProductFragment(documentObject, options.html, result.items);
   const baseContext = {
     feed: options.feed,
     target,
     products: result.products,
+    items: result.items,
+    series: result.series,
     matchedTags: result.matchedTags,
     missingTagTitles: result.missingTagTitles,
     apiOrigin: result.apiOrigin,
@@ -651,6 +751,10 @@ export class MSIProductFeed {
       ? [...options.tagTitles]
       : options.tagTitles;
     options.sort = validateSort(options.sort);
+    options.mode = validateMode(options.mode);
+    if (options.categoryPath != null) {
+      options.categoryPath = assertString(options.categoryPath, "categoryPath");
+    }
     options.pageNumber = normalizePositiveInteger(options.pageNumber, "pageNumber", 1);
     options.pageSize = normalizePositiveInteger(options.pageSize, "pageSize", 99);
     options.strictTags = options.strictTags === true;
@@ -743,45 +847,64 @@ export class MSIProductFeed {
       });
       this.state = "loading-products";
 
-      const productParams = {
-        productLine: options.productLine,
-        pageNumber: options.pageNumber,
-        pageSize: options.pageSize,
-        sort: options.sort,
-        ids: selection.ids,
-      };
-      const productUrl = getRequestUrl("products", productParams, options);
-      const productPayload = await fetchApiJson(
-        options.fetcher,
-        productUrl,
-        controller.signal,
-      );
-      const rawProducts = productPayload?.result?.getProductList;
-      if (!Array.isArray(rawProducts)) {
-        throw new MSIProductFeedError(
-          "INVALID_PRODUCT_RESPONSE",
-          "MSI product API response is missing result.getProductList.",
-        );
-      }
+      let products;
+      let series = [];
+      let items;
+      let count;
+      let emptyTagTitles = [];
 
-      const products = rawProducts.map((raw, index) => {
-        const product = normalizeProduct(raw, options.apiOrigin);
-        if (typeof options.buildProductUrl === "function") {
-          product.url = String(options.buildProductUrl(product, {
-            apiOrigin: options.apiOrigin,
-            index,
-            raw,
-          }) ?? "");
-        }
-        return product;
-      });
+      if (options.mode === "series") {
+        const groups = await Promise.all(selection.matchedTags.map(async (tag, index) => {
+          const { rawProducts } = await fetchProducts(options, {
+            productLine: options.productLine,
+            pageNumber: 1,
+            pageSize: 1,
+            sort: options.sort,
+            ids: [tag.id],
+          }, controller.signal);
+          const firstProduct = rawProducts[0]
+            ? normalizeFetchedProduct(rawProducts[0], options, index)
+            : null;
+
+          return {
+            tag,
+            firstProduct,
+            item: firstProduct ? createSeriesItem(tag, firstProduct, options) : null,
+          };
+        }));
+
+        products = groups.flatMap(({ firstProduct }) => firstProduct ? [firstProduct] : []);
+        series = groups.flatMap(({ item }) => item ? [item] : []);
+        items = series;
+        count = series.length;
+        emptyTagTitles = groups.flatMap(({ tag, firstProduct }) =>
+          firstProduct ? [] : [tag.title]
+        );
+      } else {
+        const { payload: productPayload, rawProducts } = await fetchProducts(options, {
+          productLine: options.productLine,
+          pageNumber: options.pageNumber,
+          pageSize: options.pageSize,
+          sort: options.sort,
+          ids: selection.ids,
+        }, controller.signal);
+        products = rawProducts.map((raw, index) =>
+          normalizeFetchedProduct(raw, options, index)
+        );
+        items = products;
+        count = Number(productPayload?.result?.count) || products.length;
+      }
       const result = {
         apiOrigin: options.apiOrigin,
-        count: Number(productPayload?.result?.count) || products.length,
+        mode: options.mode,
+        count,
         ids: selection.ids,
         matchedTags: selection.matchedTags,
         missingTagTitles: selection.missingTagTitles,
+        emptyTagTitles,
         products,
+        series,
+        items,
       };
 
       if (options.target != null) {

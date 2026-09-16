@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildProductUrl,
+  buildSeriesUrl,
   createProductListUrl,
   createTagListUrl,
   flattenFilterTags,
@@ -198,6 +199,14 @@ test("normalizes API HTML and creates localized product links", () => {
     buildProductUrl({ product_line: "Graphics Card", link: "RTX-5090" }, "https://tw.msi.com"),
     "https://tw.msi.com/Graphics%20Card/RTX-5090",
   );
+  assert.equal(
+    buildSeriesUrl("https://www.msi.com", "nb", 120087),
+    "https://www.msi.com/Laptops/Products?tag_multi_select=120087",
+  );
+  assert.equal(
+    buildSeriesUrl("https://tw.msi.com", "custom-line", 77, "Custom Products"),
+    "https://tw.msi.com/Custom%20Products/Products?tag_multi_select=77",
+  );
 });
 
 test("escapes product data inserted into HTML templates", () => {
@@ -293,6 +302,114 @@ test("reads the product HTML template from inside the render target", async () =
   assert.equal(result.products.length, 1);
   assert.match(target.content, /<h4>Titan 18 ® HX<\/h4>/);
   assert.match(target.content, /href="https:\/\/uk\.msi\.com\/Laptop\/Titan-18-HX"/);
+});
+
+test("renders one series card from the first product returned for each tag", async () => {
+  const requests = [];
+  const target = {
+    content: "static series content",
+    querySelector(selector) {
+      assert.equal(selector, "template[data-msi-product-template]");
+      return {
+        innerHTML: '<article><img src="{img}" alt="{title}"><h4>{title}</h4><a href="{link}">Learn More</a></article>',
+      };
+    },
+    replaceChildren(fragment) {
+      this.content = fragment.html;
+    },
+  };
+  const fetcher = async (url) => {
+    requests.push(url);
+    if (url.includes("getProductTagList")) {
+      return {
+        ok: true,
+        status: 200,
+        async json() {
+          return {
+            status: { code: 200, response: "ok" },
+            result: { filterTagList },
+          };
+        },
+      };
+    }
+
+    const tagId = Number(new URL(url).searchParams.get("id[]"));
+    const productByTag = {
+      9392: {
+        id: 101,
+        title: "Titan Product",
+        link: "Titan-Product",
+        picture: "https://storage-asset.msi.com/titan.webp",
+        product_line: "Laptop",
+      },
+      125270: {
+        id: 202,
+        title: "Raider Product",
+        link: "Raider-Product",
+        picture: "https://storage-asset.msi.com/raider.webp",
+        product_line: "Laptop",
+      },
+    };
+
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          status: { code: 200, response: "ok" },
+          result: {
+            count: productByTag[tagId] ? 1 : 0,
+            getProductList: productByTag[tagId] ? [productByTag[tagId]] : [],
+          },
+        };
+      },
+    };
+  };
+  const feed = new MSIProductFeed({
+    mode: "series",
+    productLine: "nb",
+    country: "www",
+    tagTitles: ["Titan Series", "Raider Series"],
+    target: "#products",
+    location: "https://www.msi.com/",
+    document: createFakeDocument(target),
+    fetcher,
+  });
+
+  const result = await feed.init();
+
+  assert.equal(result.mode, "series");
+  assert.equal(result.products.length, 2);
+  assert.equal(result.series.length, 2);
+  assert.equal(result.items, result.series);
+  assert.deepEqual(result.series.map(({ id, titleText }) => ({ id, titleText })), [
+    { id: 9392, titleText: "Titan Series" },
+    { id: 125270, titleText: "Raider Series" },
+  ]);
+  assert.match(target.content, /src="https:\/\/storage-asset\.msi\.com\/titan\.webp"/);
+  assert.match(target.content, />Titan Series<\/h4>/);
+  assert.match(
+    target.content,
+    /href="https:\/\/www\.msi\.com\/Laptops\/Products\?tag_multi_select=9392"/,
+  );
+  assert.equal(requests.length, 3);
+  assert.deepEqual(
+    requests.slice(1).map((url) => new URL(url).searchParams.getAll("id[]")),
+    [["9392"], ["125270"]],
+  );
+  assert.ok(requests.slice(1).every((url) => new URL(url).searchParams.get("page_size") === "1"));
+});
+
+test("rejects unsupported Product Feed modes", async () => {
+  const feed = new MSIProductFeed({
+    mode: "categories",
+    productLine: "nb",
+    tagTitles: ["Titan Series"],
+    location: "https://uk.msi.com/",
+    fetcher: createApiFetcher(),
+  });
+
+  await assert.rejects(feed.init(), { code: "INVALID_MODE" });
 });
 
 test("reports a clear error when target-local template is missing", async () => {
