@@ -17,8 +17,8 @@ export const toolDocuments: ToolDocument[] = [
     category: "Content Automation",
     description:
       "依系列標籤取得 MSI Product API 資料，透過 HTML 模板更新既有產品區塊，並提供渲染前後生命週期掛鉤。",
-    version: "v0.1",
-    updatedAt: "2026-08-25",
+    version: "v0.2",
+    updatedAt: "2026-09-16",
     tags: ["Product API", "HTML Template", "Lifecycle"],
   },
   {

@@ -1,6 +1,7 @@
 const COUNTRY_CODE_PATTERN = /^[a-z0-9-]+$/;
 const PRODUCT_LINE_PATTERN = /^[a-z0-9-]+$/i;
 const VALID_SORTS = new Set(["default", "date"]);
+const PRODUCT_TEMPLATE_SELECTOR = "template[data-msi-product-template]";
 const TEMPLATE_PLACEHOLDERS = new Set([
   "id",
   "index",
@@ -32,7 +33,7 @@ const HTML_ENTITIES = {
   trade: "™",
 };
 
-export const MSI_PRODUCT_FEED_VERSION = "0.1.0";
+export const MSI_PRODUCT_FEED_VERSION = "0.2.0";
 
 export class MSIProductFeedError extends Error {
   constructor(code, message, details = {}) {
@@ -564,9 +565,24 @@ function resolveRenderTarget(target, documentObject) {
   return element;
 }
 
+function resolveTargetTemplate(target) {
+  const template = target.querySelector?.(PRODUCT_TEMPLATE_SELECTOR);
+
+  if (!template || typeof template.innerHTML !== "string") {
+    throw new MSIProductFeedError(
+      "TEMPLATE_NOT_FOUND",
+      `Unable to find ${PRODUCT_TEMPLATE_SELECTOR} inside the render target.`,
+      { selector: PRODUCT_TEMPLATE_SELECTOR },
+    );
+  }
+
+  return validateProductTemplate(template.innerHTML);
+}
+
 async function runRenderLifecycle(options, result) {
   const documentObject = options.document ?? globalThis.document;
-  const target = resolveRenderTarget(options.target, documentObject);
+  const target = options.renderTarget
+    ?? resolveRenderTarget(options.target, documentObject);
   const fragment = createProductFragment(documentObject, options.html, result.products);
   const baseContext = {
     feed: options.feed,
@@ -684,7 +700,11 @@ export class MSIProductFeed {
       if (typeof options.target === "string") {
         assertString(options.target, "target");
       }
-      options.html = validateProductTemplate(options.html);
+      const documentObject = options.document ?? globalThis.document;
+      options.renderTarget = resolveRenderTarget(options.target, documentObject);
+      options.html = options.html == null
+        ? resolveTargetTemplate(options.renderTarget)
+        : validateProductTemplate(options.html);
     }
     return options;
   }

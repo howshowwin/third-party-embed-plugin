@@ -265,6 +265,57 @@ test("runs before, replaces the target, and then runs after", async () => {
   assert.equal(new URL(requests[1]).searchParams.get("country"), "uk");
 });
 
+test("reads the product HTML template from inside the render target", async () => {
+  const target = {
+    content: "template placeholder",
+    querySelector(selector) {
+      assert.equal(selector, "template[data-msi-product-template]");
+      return {
+        innerHTML: '<article><img src="{img}" alt="{title}"><h4>{title}</h4><a href="{link}">Learn More</a></article>',
+      };
+    },
+    replaceChildren(fragment) {
+      this.content = fragment.html;
+    },
+  };
+  const feed = new MSIProductFeed({
+    productLine: "nb",
+    country: "uk",
+    tagTitles: ["Titan Series"],
+    target: "#products",
+    location: "https://uk.msi.com/",
+    document: createFakeDocument(target),
+    fetcher: createApiFetcher(),
+  });
+
+  const result = await feed.init();
+
+  assert.equal(result.products.length, 1);
+  assert.match(target.content, /<h4>Titan 18 ® HX<\/h4>/);
+  assert.match(target.content, /href="https:\/\/uk\.msi\.com\/Laptop\/Titan-18-HX"/);
+});
+
+test("reports a clear error when target-local template is missing", async () => {
+  const target = {
+    replaceChildren() {},
+    querySelector() {
+      return null;
+    },
+  };
+
+  await assert.rejects(new MSIProductFeed({
+    productLine: "nb",
+    country: "uk",
+    tagTitles: ["Titan Series"],
+    target: "#products",
+    location: "https://uk.msi.com/",
+    document: createFakeDocument(target),
+    fetcher: createApiFetcher(),
+  }).init(), {
+    code: "TEMPLATE_NOT_FOUND",
+  });
+});
+
 test("keeps mtc as the API country for proxied requests", async () => {
   const requests = [];
   const feed = new MSIProductFeed({

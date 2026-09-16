@@ -22,7 +22,21 @@ export const metadata: Metadata = {
   },
 };
 
-const basicCode = `<script type="module">
+const basicCode = `<div class="slider__Laptops">
+  <template data-msi-product-template>
+    <div class="slider__Laptops-box">
+      <div class="slider__Laptops-item">
+        <img src="{img}" alt="{title}">
+        <h4>{title}</h4>
+        <a href="{link}" target="_blank">
+          <span>Learn More</span>
+        </a>
+      </div>
+    </div>
+  </template>
+</div>
+
+<script type="module">
 import { MSIProductFeed } from
   "https://storage-asset.msi.com/event/msi-product-feed/js/msi-product-feed.min.js";
 
@@ -36,17 +50,6 @@ const feed = new MSIProductFeed({
   ],
   sort: "default",
   target: ".slider__Laptops",
-  html: \`
-    <div class="slider__Laptops-box">
-      <div class="slider__Laptops-item">
-        <img src="{img}" alt="{title}">
-        <h4>{title}</h4>
-        <a href="{link}" target="_blank">
-          <span>Learn More</span>
-        </a>
-      </div>
-    </div>
-  \`,
   before({ target }) {
     const $slider = $(target);
     if ($slider.hasClass("slick-initialized")) {
@@ -117,7 +120,7 @@ export default function ProductFeedGuide() {
 
       <section className="feed-hero">
         <div>
-          <p>PRODUCT DATA AUTOMATION · v0.1</p>
+          <p>PRODUCT DATA AUTOMATION · v0.2</p>
           <h1>MSI Product Feed</h1>
           <span>
             先解析產品 Tag ID，再載入產品資料，最後以頁面提供的 HTML 模板替換既有靜態區塊。
@@ -160,8 +163,12 @@ export default function ProductFeedGuide() {
 
           <section id="quick-start">
             <div className="feed-section-title"><span>02</span><div><p>GETTING STARTED</p><h2>快速開始</h2></div></div>
-            <p>將以下完整 module script 放入網站，再建立一個 Feed 實例。</p>
+            <p>先在 target 內放入原生 template，再加入完整的 module script 建立 Feed 實例。</p>
             <CodeBlock id="feed-basic" code={basicCode} language="HTML" />
+            <div className="feed-note">
+              <strong>HTML 模板放在 target 裡</strong>
+              <p>插件會讀取 target 內的 template[data-msi-product-template]。原生 template 不會顯示內容，也不會讓圖片欄位提前送出錯誤請求。</p>
+            </div>
             <div className="feed-note feed-note--security">
               <strong>必須保留 module script</strong>
               <p>上方範例必須整段放在同一個 module script 中。一般 script 若直接使用頂層 await，就會出現 await is only valid in async functions 的錯誤。</p>
@@ -181,17 +188,17 @@ export default function ProductFeedGuide() {
               <div className="feed-table__row" role="row"><code>country</code><span>API 與產品導連使用的國碼；未填使用目前網域</span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>sort</code><span><code>default</code> 或 <code>date</code></span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>target</code><span>要替換內容的 selector 或 DOM Element</span><b>渲染時</b></div>
-              <div className="feed-table__row" role="row"><code>html</code><span>每一筆產品重複使用的 HTML 模板</span><b>渲染時</b></div>
+              <div className="feed-table__row" role="row"><code>html</code><span>舊版相容參數；未設定時會讀取 target 內的 template[data-msi-product-template]</span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>strictTags</code><span>預設 false；找不到的 Tag 會略過並記錄於 missingTagTitles。設為 true 才會中止</span><b>否</b></div>
               <div className="feed-table__row" role="row"><code>pageSize</code><span>預設 99</span><b>否</b></div>
             </div>
-            <p>若不設定 target 與 html，工具只會回傳整理後的資料：</p>
+            <p>若不設定 target，工具只會回傳整理後的資料：</p>
             <CodeBlock id="feed-data-only" code={dataOnlyCode} />
           </section>
 
           <section id="template">
             <div className="feed-section-title"><span>04</span><div><p>HTML TEMPLATE</p><h2>模板變數</h2></div></div>
-            <p className="feed-lead">整段 HTML 代表一筆產品。API 值會先跳脫後再寫入文字與 Attribute，不會把產品名稱當成可執行 HTML。</p>
+            <p className="feed-lead">target 內的 template 代表一筆產品。API 值會先跳脫後再寫入文字與 Attribute，不會把產品名稱當成可執行 HTML。</p>
             <div className="feed-token-grid">
               <div><code>{`{img}`}</code><span>產品圖片 URL</span></div>
               <div><code>{`{title}`}</code><span>純文字產品名稱</span></div>
