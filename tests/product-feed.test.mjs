@@ -9,6 +9,7 @@ import {
   MSIProductFeed,
   MSIProductFeedError,
   normalizeProduct,
+  normalizeTemplateUrlPlaceholders,
   renderProductTemplate,
   resolveMsiOrigin,
   resolveTagSelection,
@@ -232,6 +233,52 @@ test("escapes product data inserted into HTML templates", () => {
   assert.throws(() => validateProductTemplate("<p>{unknown}</p>"), {
     code: "UNKNOWN_PLACEHOLDER",
   });
+});
+
+test("restores CMS-expanded URL placeholders before rendering", () => {
+  const cmsHtml = [
+    '<article class="series-card">',
+    '<img src="https://mtc.msi.com/preview/promotion/detail/%7Bimg%7D" alt="{title}">',
+    '<a href="https://mtc.msi.com/preview/promotion/detail/%7Blink%7D">Learn More</a>',
+    '</article>',
+  ].join("");
+  const normalized = normalizeTemplateUrlPlaceholders(cmsHtml);
+
+  assert.match(normalized, /src="\{img\}"/);
+  assert.match(normalized, /href="\{link\}"/);
+  assert.doesNotMatch(normalized, /mtc\.msi\.com/);
+
+  const rendered = renderProductTemplate(normalized, {
+    id: 9392,
+    titleText: "Titan Series",
+    subnameText: "",
+    url: "https://www.msi.com/Laptops/Products?tag_multi_select=9392",
+    picture: "https://storage-asset.msi.com/titan.webp",
+    release: "",
+    productLine: "nb",
+    label: "",
+  }, 0);
+
+  assert.match(rendered, /src="https:\/\/storage-asset\.msi\.com\/titan\.webp"/);
+  assert.match(
+    rendered,
+    /href="https:\/\/www\.msi\.com\/Laptops\/Products\?tag_multi_select=9392"/,
+  );
+});
+
+test("keeps ordinary template URLs unchanged while normalizing CMS placeholders", () => {
+  const html = normalizeTemplateUrlPlaceholders(
+    '<img src="https://storage-asset.msi.com/static.webp"><a href="/products">Products</a>',
+  );
+
+  assert.equal(
+    html,
+    '<img src="https://storage-asset.msi.com/static.webp"><a href="/products">Products</a>',
+  );
+  assert.equal(
+    normalizeTemplateUrlPlaceholders('<img src="%7Bimg%7D"><a href="%7Blink%7D">Link</a>'),
+    '<img src="{img}"><a href="{link}">Link</a>',
+  );
 });
 
 test("runs before, replaces the target, and then runs after", async () => {

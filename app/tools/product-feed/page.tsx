@@ -150,7 +150,7 @@ export default function ProductFeedGuide() {
 
       <section className="feed-hero">
         <div>
-          <p>PRODUCT DATA AUTOMATION · v0.3</p>
+          <p>PRODUCT DATA AUTOMATION · v0.3.1</p>
           <h1>MSI Product Feed</h1>
           <span>
             先解析產品 Tag ID，再載入產品資料，最後以頁面提供的 HTML 模板替換既有靜態區塊。
@@ -199,6 +199,10 @@ export default function ProductFeedGuide() {
             <div className="feed-note">
               <strong>HTML 模板放在 target 裡</strong>
               <p>插件會讀取 target 內的 template[data-msi-product-template]。原生 template 不會顯示內容，也不會讓圖片欄位提前送出錯誤請求。</p>
+            </div>
+            <div className="feed-note">
+              <strong>相容 CMS 的網址轉換</strong>
+              <p>若 CMS 將圖片或連結 Placeholder 轉成目前頁面的絕對網址，以及 %7Bimg%7D、%7Blink%7D 等編碼形式，插件會在渲染前自動還原。</p>
             </div>
             <div className="feed-note feed-note--security">
               <strong>必須保留 module script</strong>

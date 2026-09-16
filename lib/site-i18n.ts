@@ -51,6 +51,8 @@ export const SITE_ENGLISH_TEXT: Readonly<Record<string, string>> = Object.freeze
   "先在 target 內放入原生 template，再加入完整的 module script 建立 Feed 實例。": "Place a native template inside the target, then add the complete module script to create a Feed instance.",
   "HTML 模板放在 target 裡": "Place the HTML template inside the target",
   "插件會讀取 target 內的 template[data-msi-product-template]。原生 template 不會顯示內容，也不會讓圖片欄位提前送出錯誤請求。": "The plugin reads template[data-msi-product-template] inside the target. A native template remains hidden and prevents the image field from making an invalid request before rendering.",
+  "相容 CMS 的網址轉換": "Compatible with CMS URL conversion",
+  "若 CMS 將圖片或連結 Placeholder 轉成目前頁面的絕對網址，以及 %7Bimg%7D、%7Blink%7D 等編碼形式，插件會在渲染前自動還原。": "If the CMS converts image or link placeholders into absolute URLs on the current page, including encoded forms such as %7Bimg%7D and %7Blink%7D, the plugin restores them automatically before rendering.",
   "必須保留 module script": "Keep the module script wrapper",
   "上方範例必須整段放在同一個 module script 中。一般 script 若直接使用頂層 await，就會出現 await is only valid in async functions 的錯誤。": "Keep the complete example in a single module script. Using top-level await directly in a regular script causes the “await is only valid in async functions” error.",
   "複製": "Copy",

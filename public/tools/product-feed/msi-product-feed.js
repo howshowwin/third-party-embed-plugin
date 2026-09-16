@@ -43,7 +43,7 @@ const HTML_ENTITIES = {
   trade: "™",
 };
 
-export const MSI_PRODUCT_FEED_VERSION = "0.3.0";
+export const MSI_PRODUCT_FEED_VERSION = "0.3.1";
 
 export class MSIProductFeedError extends Error {
   constructor(code, message, details = {}) {
@@ -374,8 +374,30 @@ export function getProductTemplateVariables(product, index) {
   };
 }
 
+export function normalizeTemplateUrlPlaceholders(html) {
+  return String(html ?? "").replace(
+    /(\b(?:href|src)\s*=\s*)(["'])(.*?)\2/gi,
+    (attribute, prefix, quote, value) => {
+      const decoded = value
+        .replace(/%7b/gi, "{")
+        .replace(/%7d/gi, "}");
+      const markdownMatch = decoded.match(
+        /^\[\{(img|link)\}\]\([^)]*\/\{\1\}\)$/i,
+      );
+      const urlMatch = decoded.match(/(?:^|\/)\{(img|link)\}$/i);
+      const placeholder = markdownMatch?.[1] ?? urlMatch?.[1];
+
+      if (!placeholder) {
+        return attribute;
+      }
+
+      return `${prefix}${quote}{${placeholder.toLowerCase()}}${quote}`;
+    },
+  );
+}
+
 export function validateProductTemplate(html) {
-  const template = assertString(html, "html");
+  const template = assertString(normalizeTemplateUrlPlaceholders(html), "html");
   const placeholders = [...template.matchAll(/\{([A-Za-z][A-Za-z0-9]*)\}/g)]
     .map((match) => match[1]);
   const unknown = [...new Set(placeholders.filter((name) =>
