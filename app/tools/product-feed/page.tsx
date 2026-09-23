@@ -168,6 +168,7 @@ export default function ProductFeedGuide() {
         <aside className="feed-toc" aria-label="本頁章節">
           <p>ON THIS PAGE</p>
           <a href="#overview">運作方式</a>
+          <a href="#agent-skill">AI Agent Skill</a>
           <a href="#quick-start">快速開始</a>
           <a href="#configuration">設定參數</a>
           <a href="#series-mode">系列模式</a>
@@ -190,6 +191,13 @@ export default function ProductFeedGuide() {
               <li><span>3</span><strong>Build Fragment</strong><small>安全替換模板變數，先在畫面外完成 HTML</small></li>
               <li><span>4</span><strong>Swap & Restore</strong><small>before → replaceChildren → after</small></li>
             </ol>
+            <div className="feed-note" id="agent-skill">
+              <h3>AI Agent Skill</h3>
+              <p>下載完整的英文 Skill，包含 API 與國碼設定、產品與系列模式、HTML 模板、CMS 相容處理、Slick 生命週期及 CORS 排查。</p>
+              <p>支援 Skill 的 Agent：將檔案放入其 Skill 目錄下的 msi-product-feed/SKILL.md。其他 AI：上傳檔案或貼上完整內容，再附上要修改的頁面與需求；安裝位置依各 Agent 而定。</p>
+              <a className="feed-demo-link" href="/skills/msi-product-feed/SKILL.md" download="SKILL.md">下載 SKILL.md</a>
+              <p>可直接告訴 AI：「請依照附件中的 MSI Product Feed Skill，將這份頁面的產品區塊串接 API，保留原有版型與輪播效果。」</p>
+            </div>
           </section>
 
           <section id="quick-start">
