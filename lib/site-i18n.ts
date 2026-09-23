@@ -5,6 +5,10 @@ export type SiteLocale = "zh-TW" | "en";
 export const SITE_DEFAULT_LOCALE: SiteLocale = "zh-TW";
 
 export const SITE_ENGLISH_TEXT: Readonly<Record<string, string>> = Object.freeze({
+  "下載完整的英文 Skill，包含各服務範例、同意與撤回流程、多組 IG 與彈窗生命週期，以及常見問題排查。": "Download the complete English skill with service examples, consent and withdrawal flows, multiple Instagram embeds, popup lifecycles, and troubleshooting.",
+  "支援 Skill 的 Agent：將檔案放入其 Skill 目錄下的 msi-third-party-embed/SKILL.md。其他 AI：上傳檔案或貼上完整內容，再附上要修改的頁面與需求；安裝位置依各 Agent 而定。": "For agents that support skills, place the file at msi-third-party-embed/SKILL.md inside their skills directory. For other AI tools, upload the file or paste its full contents along with your page and requirements. Installation locations vary by agent.",
+  "下載 SKILL.md": "Download SKILL.md",
+  "可直接告訴 AI：「請依照附件中的 MSI Third-party Embed Skill，修改這份頁面的第三方嵌入，保留原有版型。」": "Suggested prompt: “Follow the attached MSI Third-party Embed Skill to update this page's third-party embeds while preserving its layout.”",
   "個工具": "tools",
   "工具文件": "Tool Documentation",
   "選擇要查看的工具，進入完整使用手冊與 Demo。": "Choose a tool to open its complete guide and interactive demo.",

@@ -175,6 +175,7 @@ export default function ThirdPartyEmbedGuide() {
         <aside className="feed-toc embed-toc" aria-label="本頁章節">
           <p>ON THIS PAGE</p>
           <a href="#overview">工具概覽</a>
+          <a href="#agent-skill">AI Agent Skill</a>
           <a href="#quick-start">快速開始</a>
           <a href="#provider-manifest">Provider 白名單</a>
           <a href="#youku">YOUKU 影片</a>
@@ -204,6 +205,13 @@ export default function ThirdPartyEmbedGuide() {
             <div className="doc-callout doc-callout--important">
               <strong>使用前提</strong>
               <p>新服務必須先完成內部申請。未列入 Provider JSON 白名單的網域，前端插件不會載入。</p>
+            </div>
+            <div className="doc-callout" id="agent-skill">
+              <h3>AI Agent Skill</h3>
+              <p>下載完整的英文 Skill，包含各服務範例、同意與撤回流程、多組 IG 與彈窗生命週期，以及常見問題排查。</p>
+              <p>支援 Skill 的 Agent：將檔案放入其 Skill 目錄下的 msi-third-party-embed/SKILL.md。其他 AI：上傳檔案或貼上完整內容，再附上要修改的頁面與需求；安裝位置依各 Agent 而定。</p>
+              <a className="feed-demo-link" href="/skills/msi-third-party-embed/SKILL.md" download="SKILL.md">下載 SKILL.md</a>
+              <p>可直接告訴 AI：「請依照附件中的 MSI Third-party Embed Skill，修改這份頁面的第三方嵌入，保留原有版型。」</p>
             </div>
           </section>
 
