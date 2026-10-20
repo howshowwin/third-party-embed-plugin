@@ -5,6 +5,11 @@ export type SiteLocale = "zh-TW" | "en";
 export const SITE_DEFAULT_LOCALE: SiteLocale = "zh-TW";
 
 export const SITE_ENGLISH_TEXT: Readonly<Record<string, string>> = Object.freeze({
+  "產品購買網址（產品路徑加上 /shopnow）": "Product purchase URL (product path plus /shopnow)",
+  "Shop Now 連結": "Shop Now link",
+  "使用": "Use",
+  "產生產品購買網址；系列模式會使用該系列第一筆產品的購買網址。原本的": "to generate a product purchase URL; series mode uses the first product's purchase URL. The original",
+  "保持不變，實際購買頁是否提供仍依各 Local 與產品而定。": "stays unchanged. Purchase-page availability depends on the Local and product.",
   "下載完整的英文 Skill，包含 API 與國碼設定、產品與系列模式、HTML 模板、CMS 相容處理、Slick 生命週期及 CORS 排查。": "Download the complete English skill covering API and country settings, product and series modes, HTML templates, CMS compatibility, Slick lifecycles, and CORS troubleshooting.",
   "支援 Skill 的 Agent：將檔案放入其 Skill 目錄下的 msi-product-feed/SKILL.md。其他 AI：上傳檔案或貼上完整內容，再附上要修改的頁面與需求；安裝位置依各 Agent 而定。": "For agents that support skills, place the file at msi-product-feed/SKILL.md inside their skills directory. For other AI tools, upload the file or paste its full contents along with your page and requirements. Installation locations vary by agent.",
   "可直接告訴 AI：「請依照附件中的 MSI Product Feed Skill，將這份頁面的產品區塊串接 API，保留原有版型與輪播效果。」": "Suggested prompt: “Follow the attached MSI Product Feed Skill to connect this page's product section to the API while preserving its layout and carousel behavior.”",

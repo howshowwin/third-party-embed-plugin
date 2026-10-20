@@ -5,7 +5,7 @@ description: Integrate or troubleshoot MSI Product Feed in existing product page
 
 # MSI Product Feed integration
 
-Use the existing MSIProductFeed plugin to replace static product cards with API data while preserving the page's layout. This self-contained skill describes the v0.3.1 API and needs no agent-specific tools. Respond in the user's language. If newer deployed code is available, inspect it before assuming its behavior matches this version.
+Use the existing MSIProductFeed plugin to replace static product cards with API data while preserving the page's layout. This self-contained skill describes the v0.3.2 API and needs no agent-specific tools. Respond in the user's language. If newer deployed code is available, inspect it before assuming its behavior matches this version.
 
 ## Integration decisions
 
@@ -154,6 +154,7 @@ Other lines fall back to their normalized productLine as the path. Verify the ac
 | `{img}` | Product image (`picture`) | First product image |
 | `{title}` | Plain-text product title | Plain-text tag title |
 | `{link}` | Resolved product URL | Series listing URL |
+| `{shopnow}` | Product URL with `/shopnow` appended to its path | First product's purchase URL |
 | `{id}` | Product ID | Tag ID |
 | `{subname}` | Plain-text subtitle | First product subtitle |
 | `{label}` | Plain-text label | First product label |
@@ -162,11 +163,13 @@ Other lines fall back to their normalized productLine as the path. Verify the ac
 | `{index}` | Zero-based rendered index | Zero-based rendered index |
 | `{number}` | One-based rendered index | One-based rendered index |
 
-Use single braces with these exact names; the GDPR snippet plugin's `{{key}}` syntax does not apply. Values are HTML-escaped. Unknown placeholders throw `UNKNOWN_PLACEHOLDER`. Normalized objects use fields such as `picture`, `titleText`, and `url`; `{img}` and `{link}` are template aliases, not those object's field names.
+Use single braces with these exact names; the GDPR snippet plugin's `{{key}}` syntax does not apply. Values are HTML-escaped. Unknown placeholders throw `UNKNOWN_PLACEHOLDER`. Normalized objects use fields such as `picture`, `titleText`, and `url`; `{img}`, `{link}` and `{shopnow}` are template aliases, not those object's field names.
+
+For a purchase button, use `<a href="{shopnow}" target="_blank" rel="noopener noreferrer">Shop Now</a>`. It uses the resolved product URL (including a custom `buildProductUrl` result), keeps its query parameters, removes its fragment, handles a trailing slash, and does not append `/shopnow` twice. Empty, invalid or non-HTTP(S) product URLs yield an empty value. Series mode uses `firstProduct.url`, not the classification listing URL. Existing `{link}` behavior is unchanged. This constructs a URL; it does not verify purchase-page availability for a Local or product.
 
 The template is parsed as HTML and repeated for every item. Use balanced tags, quoted URL attributes, no nested anchors and no surrounding target wrapper. Malformed closing tags can cause browser-repaired nesting across cards. Inspect the served markup, not only the editor's input, when debugging CMS output.
 
-Version 0.3.1 restores `{img}` and `{link}` in quoted `src` and `href` attributes when the CMS percent-encodes braces or prefixes the placeholder with a page URL. For example, `src="https://mtc.msi.com/preview/promotion/detail/%7Bimg%7D"` is normalized before substitution. This is a targeted URL repair, not a general decoder for arbitrary CMS changes. If it fails, inspect the deployed plugin version and the exact output string; do not decode the entire document.
+Version 0.3.2 restores `{img}`, `{link}` and `{shopnow}` in quoted `src` and `href` attributes when the CMS percent-encodes braces or prefixes the placeholder with a page URL. For example, `src="https://mtc.msi.com/preview/promotion/detail/%7Bimg%7D"` is normalized before substitution. This is a targeted URL repair, not a general decoder for arbitrary CMS changes. If it fails, inspect the deployed plugin version and the exact output string; do not decode the entire document.
 
 The DOM validator rejects script/iframe/object/embed/base, inline event attributes, srcdoc and non-HTTP(S) URLs in validated URL attributes. Links with `target="_blank"` gain `noopener noreferrer`. Use reviewed markup; do not remove validation to make embedded scripts run. Keep CSS and JS outside the card template.
 

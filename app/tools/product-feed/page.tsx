@@ -31,6 +31,9 @@ const basicCode = `<div class="slider__Laptops">
         <a href="{link}" target="_blank">
           <span>Learn More</span>
         </a>
+        <a href="{shopnow}" target="_blank" rel="noopener noreferrer">
+          <span>Shop Now</span>
+        </a>
       </div>
     </div>
   </template>
@@ -150,7 +153,7 @@ export default function ProductFeedGuide() {
 
       <section className="feed-hero">
         <div>
-          <p>PRODUCT DATA AUTOMATION · v0.3.1</p>
+          <p>PRODUCT DATA AUTOMATION · v0.3.2</p>
           <h1>MSI Product Feed</h1>
           <span>
             先解析產品 Tag ID，再載入產品資料，最後以頁面提供的 HTML 模板替換既有靜態區塊。
@@ -159,7 +162,7 @@ export default function ProductFeedGuide() {
         </div>
         <dl>
           <div><dt>2</dt><dd>API 階段</dd></div>
-          <div><dt>10</dt><dd>模板變數</dd></div>
+          <div><dt>11</dt><dd>模板變數</dd></div>
           <div><dt>2</dt><dd>生命週期 Hook</dd></div>
         </dl>
       </section>
@@ -265,6 +268,7 @@ export default function ProductFeedGuide() {
               <div><code>{`{img}`}</code><span>產品圖片 URL</span></div>
               <div><code>{`{title}`}</code><span>純文字產品名稱</span></div>
               <div><code>{`{link}`}</code><span>完整 Local 產品網址</span></div>
+              <div><code>{`{shopnow}`}</code><span>產品購買網址（產品路徑加上 /shopnow）</span></div>
               <div><code>{`{subname}`}</code><span>純文字副標題</span></div>
               <div><code>{`{label}`}</code><span>HOT、NEW 等標籤</span></div>
               <div><code>{`{release}`}</code><span>發布日期</span></div>
@@ -272,6 +276,10 @@ export default function ProductFeedGuide() {
               <div><code>{`{index}`}</code><span>從 0 開始的索引</span></div>
               <div><code>{`{number}`}</code><span>從 1 開始的序號</span></div>
               <div><code>{`{productLine}`}</code><span>API 產品分類</span></div>
+            </div>
+            <div className="feed-note">
+              <strong>Shop Now 連結</strong>
+              <p>使用 {`{shopnow}`} 產生產品購買網址；系列模式會使用該系列第一筆產品的購買網址。原本的 {`{link}`} 保持不變，實際購買頁是否提供仍依各 Local 與產品而定。</p>
             </div>
             <div className="feed-note feed-note--security">
               <strong>模板安全限制</strong>
